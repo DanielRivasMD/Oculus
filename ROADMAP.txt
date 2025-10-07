@@ -1,0 +1,4 @@
+==================================================
+src/cnn.jl
+  line 3      TODO   load both sequences, french & neandertal, and tag for training
+==================================================

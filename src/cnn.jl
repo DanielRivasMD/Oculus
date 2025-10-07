@@ -1,7 +1,8 @@
 ####################################################################################################
 
-# load sequences
+# TODO: load both sequences, french & neandertal, and tag for training
 
+# load sequences
 using FASTX, BioSequences
 
 # Load sequences from a FASTA file
