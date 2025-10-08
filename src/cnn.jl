@@ -1,23 +1,12 @@
 ####################################################################################################
 
-# TODO: load both sequences, french & neandertal, and tag for training
-
-# load sequences
+# Load utilities
 using FASTX, BioSequences
+using StatsBase
+using Flux
+using Flux: onehotbatch, DataLoader
 
-# Load sequences from a FASTA file
-dna_seqs = FASTAReader(open("chrI.fa")) do reader
-    [sequence(LongDNA{4}, record) for record in reader]
-end
-
-println("Loaded $(length(dna_seqs)) sequences")
-println(typeof(dna_seqs[1]))  # LongDNA{4}
-
-####################################################################################################
-
-# one-hot encode sequences
-
-# A,C,G,T -> columns 1..4. Ambiguity (e.g., N) leaves a zero row.
+# One-hot mapping: A,C,G,T -> columns 1..4; ambiguity (N) becomes zeros
 nt2ix = Dict(DNA_A=>1, DNA_C=>2, DNA_G=>3, DNA_T=>4)
 
 function onehot_encode(seq::LongDNA{4})
@@ -32,7 +21,7 @@ function onehot_encode(seq::LongDNA{4})
     return X
 end
 
-# Batch: pad to a common length for batching (simple right-padding with zeros)
+# Batch: right-pad to max length across seqs to form (maxL, 4, B)
 function onehot_batch(seqs::Vector{LongDNA{4}})
     maxL = maximum(length, seqs)
     B = length(seqs)
@@ -45,89 +34,113 @@ function onehot_batch(seqs::Vector{LongDNA{4}})
     return X  # (maxL, 4, B)
 end
 
+# Utility: load sequences from a FASTA/FASTQ-like file, ignoring qualities
+function load_sequences_fasta(path::AbstractString)
+    FASTA.Reader(open(path)) do reader
+        [sequence(LongDNA{4}, record) for record in reader]
+    end
+end
+
 ####################################################################################################
 
-using Flux: DataLoader
+# Load datasets
+french_seqs     = load_sequences_fasta("data/French_sample.fa")
+neandertal_seqs = load_sequences_fasta("data/Neandertal_sample.fa")
 
-X = onehot_batch(dna_seqs)   # (maxL, 4, batch)
+println("French:     $(length(french_seqs)) reads")
+println("Neandertal: $(length(neandertal_seqs)) reads")
+
+####################################################################################################
+
+# Filter to 50 nt and balance
+french_50     = filter(seq -> length(seq) == 50, french_seqs)
+neandertal_50 = filter(seq -> length(seq) == 50, neandertal_seqs)
+
+println("French 50nt:     $(length(french_50))")
+println("Neandertal 50nt: $(length(neandertal_50))")
+
+# Balance by downsampling the larger set
+minN = min(length(french_50), length(neandertal_50))
+using Random
+Random.seed!(42)  # for reproducibility
+
+french_balanced     = sample(french_50, minN; replace=false)
+neandertal_balanced = sample(neandertal_50, minN; replace=false)
+
+println("Balanced French:     $(length(french_balanced))")
+println("Balanced Neandertal: $(length(neandertal_balanced))")
+
+# Concatenate sequences and labels
+all_seqs = vcat(french_balanced, neandertal_balanced)
+labels   = vcat(zeros(Int, length(french_balanced)),
+                ones(Int,  length(neandertal_balanced)))
+
+####################################################################################################
+
+# One-hot encode and build DataLoader
+X = onehot_batch(all_seqs)          # (50, 4, 2*minN)
+Y = onehotbatch(labels, 0:1)        # (2, 2*minN)
+
+@show size(X), size(Y)              # sanity check: (50,4,N), (2,N)
+println("Sequences: ", length(all_seqs))
+println("Labels:    ", length(labels))
+
+# DataLoader: collate=true (default) returns (50,4,batch) and (2,batch)
 loader = DataLoader((X, Y); batchsize=64, shuffle=true)
 
-using Flux: onehotbatch
-
-Y = onehotbatch(labels, 1:2)  # shape (2, batch)
-
 ####################################################################################################
 
-# vanilla cnn
-
-using Flux
-
-# Input shape (sequence_length, 4, batch)
-# Use @autosize to infer Dense input sizes automatically
-model = Flux.@autosize (100, 4, 1) Chain(
+# Input shape is (50, 4, batch)
+model = Flux.@autosize (50, 4, 1) Chain(
     # Block 1
     Conv((5,), 4 => 32, pad=SamePad(), init=Flux.kaiming_uniform),
-    BatchNorm(32),
-    relu,
+    BatchNorm(32), relu,
     Conv((5,), 32 => 32, pad=SamePad(), init=Flux.kaiming_uniform),
-    BatchNorm(32),
-    relu,
-    MaxPool((2,)),
-    Dropout(0.2),
+    BatchNorm(32), relu,
+    MaxPool((2,)), Dropout(0.2),
 
     # Block 2
     Conv((5,), 32 => 64, pad=SamePad(), init=Flux.kaiming_uniform),
-    BatchNorm(64),
-    relu,
+    BatchNorm(64), relu,
     Conv((5,), 64 => 64, pad=SamePad(), init=Flux.kaiming_uniform),
-    BatchNorm(64),
-    relu,
-    MaxPool((2,)),
-    Dropout(0.3),
+    BatchNorm(64), relu,
+    MaxPool((2,)), Dropout(0.3),
 
     # Block 3
     Conv((5,), 64 => 128, pad=SamePad(), init=Flux.kaiming_uniform),
-    BatchNorm(128),
-    relu,
+    BatchNorm(128), relu,
     Conv((5,), 128 => 128, pad=SamePad(), init=Flux.kaiming_uniform),
-    BatchNorm(128),
-    relu,
-    MaxPool((2,)),
-    Dropout(0.4),
+    BatchNorm(128), relu,
+    MaxPool((2,)), Dropout(0.4),
 
     # Dense head
     Flux.flatten,
     Dense(_ => 128, init=Flux.kaiming_uniform),
-    BatchNorm(128),
-    relu,
-    Dropout(0.5),
+    BatchNorm(128), relu, Dropout(0.5),
     Dense(_ => 2),
     softmax
 )
 
 ####################################################################################################
 
-# optimize & training
-
-# Hyperparameters
+# Optimise & training (modern Flux API)
 epochs = 50
 lrate  = 0.01
+opt    = OptimiserChain(Descent(lrate), Momentum(0.9))
 
-# Optimizer: SGD with momentum 0.9 (no decay, no Nesterov)
-opt = OptimiserChain(Descent(lrate), Momentum(0.9))
+# Setup optimiser state once
+st = Flux.setup(opt, model)
 
-# Binary cross-entropy on softmax logits (2 classes)
-loss(x, y) = Flux.logitcrossentropy(model(x), y)
-
-# Example training loop (expects a DataLoader providing (x, y) with y as 2×batch one-hot)
-using Flux: DataLoader
 for epoch in 1:epochs
     for (xb, yb) in loader
-        gs = gradient(Flux.params(model)) do
-            loss(xb, yb)
+        # Compute gradient w.r.t. model
+        gs, = gradient(model) do m
+            loss(m(xb), yb)
         end
-        Flux.Optimise.update!(opt, Flux.params(model), gs)
+        # Update model with optimiser state
+        Flux.update!(st, model, gs)
     end
+    @info "Finished epoch $epoch"
 end
 
 ####################################################################################################
