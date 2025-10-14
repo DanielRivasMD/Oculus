@@ -12,7 +12,7 @@ function trainCNN!(model, loader; hparams::CNNParams)
 
     for epoch in 1:hparams.epochs
         for (xb, yb) in loader
-            xb, yb = hparams.device(xb), hparams.device(yb)
+            # xb, yb = hparams.device(xb), hparams.device(yb)
             gs, = gradient(model) do m
                 loss(m(xb), yb)
             end

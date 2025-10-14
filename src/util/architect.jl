@@ -29,7 +29,8 @@ function buildCNN(hparams::CNNParams, sparams::SampleParams)
         BatchNorm(hparams.layerout3), hparams.σ, Dropout(hparams.dropout_dense),
         Dense(_ => 2),
         softmax
-    ) |> hparams.device
+    )
+    # ) |> hparams.device
 end
 
 ####################################################################################################
