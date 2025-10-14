@@ -15,7 +15,7 @@ using Parameters: @with_kw
     σ::Function              = relu         # activation function
     maxpool::Int             = 2            # max pooling
     η::Float64               = 1e-2         # learning rate
-    momemntum::Float64       = 0.9          # optimizer momentum
+    momentum::Float64        = 0.9          # optimizer momentum
     dropout1::Float64        = 0.2          # block 1 dropout
     dropout2::Float64        = 0.3          # block 2 dropout
     dropout3::Float64        = 0.4          # block 3 dropout
