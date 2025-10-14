@@ -5,6 +5,9 @@ using FASTX, BioSequences
 using StatsBase
 using Flux
 using Flux: onehotbatch, DataLoader
+using Flux: crossentropy
+
+loss(ŷ, y) = crossentropy(ŷ, y)
 
 # One-hot mapping: A,C,G,T -> columns 1..4; ambiguity (N) becomes zeros
 nt2ix = Dict(DNA_A=>1, DNA_C=>2, DNA_G=>3, DNA_T=>4)
