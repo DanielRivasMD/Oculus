@@ -1,3 +1,9 @@
+- if the ancient dna motifs are observed at the end of the sequences, then cutting them short would render them modern?
+- likewise, a smaller kernel migth impact the prediction power significantly?
+- given that the architecture deepness is linked to the sequence length, consider using different lengths in training, or training different models
+- potentially introduce regularization penalities
+- add validation set
+
 ==================================================
 src/cnn.jl
   line 3      TODO   load both sequences, french & neandertal, and tag for training
