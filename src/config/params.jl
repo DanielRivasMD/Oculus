@@ -12,6 +12,7 @@ using Parameters: @with_kw
     kernelsize::Int          = 5            # convulution kernel size
     epochs::Int              = 50           # number of epochs
     train_frac::Float64      = 0.8          # data fraction for training
+    k::Int                   = 0            # 0 = vanilla validation, > 0 = k-fold CV
 
     σ::Function              = relu         # activation function
     maxpool::Int             = 2            # max pooling
