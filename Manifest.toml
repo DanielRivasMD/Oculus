@@ -2,7 +2,7 @@
 
 julia_version = "1.12.0"
 manifest_format = "2.0"
-project_hash = "e83cbeb2b7a9bd59254e8818df17167bb1ae8c94"
+project_hash = "642d961672e6077c2d25636b63e92fb768c0921d"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -105,6 +105,11 @@ git-tree-sha1 = "3b642331600250f592719140c60cf12372b82d66"
 uuid = "ab4f0b2a-ad5b-11e8-123f-65d77653426b"
 version = "0.5.1"
 
+[[deps.BSON]]
+git-tree-sha1 = "4c3e506685c527ac6a54ccc0c8c76fd6f91b42fb"
+uuid = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
+version = "0.3.9"
+
 [[deps.BangBang]]
 deps = ["Accessors", "ConstructionBase", "InitialValues", "LinearAlgebra"]
 git-tree-sha1 = "26f41e1df02c330c4fa1e98d4aa2168fdafc9b1f"
@@ -153,6 +158,11 @@ deps = ["PrecompileTools"]
 git-tree-sha1 = "41e42d326ff01d12167f3f8a218b318bf7429d0f"
 uuid = "3c28c6f8-a34d-59c4-9654-267d177fcfa9"
 version = "5.2.0"
+
+[[deps.BufferedStreams]]
+git-tree-sha1 = "6863c5b7fc997eadcabdbaf6c5f201dc30032643"
+uuid = "e1450e63-4bb3-523b-b2a4-4ffa8c0fd77d"
+version = "1.2.2"
 
 [[deps.CEnum]]
 git-tree-sha1 = "389ad5c84de1ae7cf0e28e381131c98ea87d54fc"
@@ -359,6 +369,11 @@ version = "0.9.5"
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 version = "1.6.0"
+
+[[deps.EnumX]]
+git-tree-sha1 = "bddad79635af6aec424f53ed8aad5d7555dc6f00"
+uuid = "4e289a0a-7415-4d19-859d-a7e5c4648b56"
+version = "1.0.5"
 
 [[deps.EnzymeCore]]
 git-tree-sha1 = "e059db5d02720ae826445f5ce2fdfb3d53236b87"
@@ -825,6 +840,12 @@ version = "0.1.5"
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 version = "1.3.0"
 
+[[deps.ONNX]]
+deps = ["EnumX", "LinearAlgebra", "NNlib", "Pkg", "ProtoBuf", "StaticArrays", "Statistics", "Test", "Umlaut"]
+git-tree-sha1 = "0771f3d82a3ab1dda915bcfa802ca5cca312d85b"
+uuid = "d0dd6a25-fac6-55c0-abf7-829e0c774d20"
+version = "0.3.0"
+
 [[deps.OneHotArrays]]
 deps = ["Adapt", "ChainRulesCore", "Compat", "GPUArraysCore", "LinearAlgebra", "NNlib"]
 git-tree-sha1 = "bfe8e84c71972f77e775f75e6d8048ad3fdbe8bc"
@@ -929,6 +950,12 @@ deps = ["Logging", "SHA", "UUIDs"]
 git-tree-sha1 = "d95ed0324b0799843ac6f7a6a85e65fe4e5173f0"
 uuid = "33c8b6b6-d38a-422a-b730-caa89a2f386c"
 version = "0.1.5"
+
+[[deps.ProtoBuf]]
+deps = ["BufferedStreams", "Dates", "EnumX", "TOML"]
+git-tree-sha1 = "eabdb811dbacadc9d7e0dee9ac11c1a12705e12a"
+uuid = "3349acd9-ac6a-5e09-bcdb-63829b23a429"
+version = "1.2.0"
 
 [[deps.PtrArrays]]
 git-tree-sha1 = "1d36ef11a9aaf1e8b74dacc6a731dd1de8fd493d"
@@ -1216,6 +1243,12 @@ version = "1.1.2"
 deps = ["Random", "SHA"]
 uuid = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 version = "1.11.0"
+
+[[deps.Umlaut]]
+deps = ["ExprTools", "LinearAlgebra", "Statistics", "Test"]
+git-tree-sha1 = "2f69c5c6a9e29c3136a623eff24a9820b90ab5ea"
+uuid = "92992a2b-8ce5-4a9c-bb9d-58be9a7dc841"
+version = "0.7.1"
 
 [[deps.UnPack]]
 git-tree-sha1 = "387c1f73762231e86e0c9c5443ce3b4a0a9a0c2b"
