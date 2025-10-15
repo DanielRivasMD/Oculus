@@ -22,7 +22,7 @@ function trainCNN!(model, train_loader::DataLoader, val_loader::Union{DataLoader
     val_losses   = Float64[]
 
     for epoch in 1:hparams.epochs
-        # ---- Train epoch
+        # Train epoch
         total = 0.0
         count = 0
         for (xb, yb) in train_loader
@@ -39,7 +39,7 @@ function trainCNN!(model, train_loader::DataLoader, val_loader::Union{DataLoader
         train_mean = total / max(count, 1)
         push!(train_losses, train_mean)
 
-        # ---- Validation epoch
+        # Validation epoch
         if val_loader !== nothing
             vtotal = 0.0
             vcount = 0

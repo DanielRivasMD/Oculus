@@ -78,36 +78,44 @@ end
 
 ####################################################################################################
 
-"""
-    make_dataset(sparams, hparams)
-
-Returns ((Xtrain, Ytrain), (Xval, Yval), meta) with tensors:
-- X: (L, 4, B)
-- Y: (2, B)
-meta carries sizes for sanity checks.
-"""
 function make_dataset(sparams::SampleParams, hparams::CNNParams)
     all_seqs, labels = load_balanced_data(sparams)
-    X = onehot_batch(all_seqs)                 # (L,4,B)
-    Y = onehotbatch(labels, 0:1)               # (2,B)
+    X = onehot_batch(all_seqs)
+    Y = onehotbatch(labels, 0:1)
 
     B = size(X, 3)
     @assert size(Y, 2) == B "X/Y batch size mismatch"
 
+    folds = split_indices(B, hparams, sparams)
+
+    datasets = []
+    for fold in folds
+        train_idx, val_idx = fold.train, fold.val
+        Xtrain, Ytrain = X[:, :, train_idx], Y[:, train_idx]
+        Xval,   Yval   = X[:, :, val_idx],   Y[:, val_idx]
+        push!(datasets, ((Xtrain, Ytrain), (Xval, Yval)))
+    end
+
+    return datasets, (B=B, L=size(X,1))
+end
+
+####################################################################################################
+
+function split_indices(B::Int, hparams::CNNParams, sparams::SampleParams)
     Random.seed!(sparams.seed)
-    idx = collect(1:B)
-    shuffle!(idx)
-    ntrain = round(Int, hparams.train_frac * B)
-    train_idx = idx[1:ntrain]
-    val_idx   = idx[ntrain+1:end]
+    idx = shuffle(1:B)
 
-    Xtrain = X[:, :, train_idx]
-    Ytrain = Y[:, train_idx]
-    Xval   = X[:, :, val_idx]
-    Yval   = Y[:, val_idx]
-
-    meta = (B=B, ntrain=ntrain, nval=length(val_idx), L=size(X,1))
-    return (Xtrain, Ytrain), (Xval, Yval), meta
+    if hparams.k == 0
+        # Vanilla validation
+        ntrain = round(Int, hparams.train_frac * B)
+        return [(train=idx[1:ntrain], val=idx[ntrain+1:end])]
+    else
+        # k-fold CV
+        foldsize = ceil(Int, B / hparams.k)
+        return [(train=setdiff(idx, idx[((i-1)*foldsize+1):min(i*foldsize, B)]),
+                 val=idx[((i-1)*foldsize+1):min(i*foldsize, B)])
+                for i in 1:hparams.k]
+    end
 end
 
 ####################################################################################################
