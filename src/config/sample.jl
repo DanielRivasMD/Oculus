@@ -22,25 +22,29 @@ at creation time via keyword arguments.
   Random seed used for reproducible shuffling, sampling, and train/validation
   splits.
 
-- `modern::String = joinpath(Paths.FASTA, "French_sample.fa")`  
+- `datadir::String = Paths.FASTA`  
+  Base directory where FASTA files are stored.
+
+- `modern::String = joinpath(datadir, "French_sample.fasta")`  
   Path to the FASTA file containing modern DNA sequences.
 
-- `ancient::String = joinpath(Paths.FASTA, "Neandertal_sample.fa")`  
+- `ancient::String = joinpath(datadir, "Neandertal_sample.fasta")`  
   Path to the FASTA file containing ancient DNA sequences.
 
 # Usage
 ```julia
 sparams = SampleParams(seqlen=75,
                        seed=123,
-                       modern="data/modern.fa",
-                       ancient="data/ancient.fa")
-
+                       datadir="data/fasta",
+                       modern=joinpath("data/fasta", "modern.fasta"),
+                       ancient=joinpath("data/fasta", "ancient.fasta"))
 """
 @with_kw mutable struct SampleParams
-    seqlen::Int              = 50
-    seed::Int                = 42
-    modern::String           = joinpath(Paths.FASTA, "French_sample.fa")
-    ancient::String          = joinpath(Paths.FASTA, "Neandertal_sample.fa")
+  seqlen::Int = 50
+  seed::Int = 42
+  datadir::String = Paths.FASTA
+  modern::String = joinpath(datadir, "French_37nt.fasta")
+  ancient::String = joinpath(datadir, "Neandertal_37nt.fasta")
 end
 
 ####################################################################################################
