@@ -314,13 +314,6 @@ hparams = CNNParams(train_frac=0.8, k=0)
 
 folds = split_indices(100, hparams, sparams)
 (train_idx, val_idx) = folds[1]
-
-# For 5‑fold CV:
-hparams = CNNParams(k=5)
-folds = split_indices(100, hparams, sparams)
-for (i, fold) in enumerate(folds)
-    @info "Fold $i" train=length(fold.train) val=length(fold.val)
-end
 """
 function split_indices(B::Int, hparams::CNNParams, sparams::SampleParams)
     Random.seed!(sparams.seed)
