@@ -2,6 +2,7 @@
 
 using CUDA
 using Flux
+using Flux              # DOC: observe that flux must be loaded twice to circumvent the dependency data race
 using Flux: DataLoader
 
 ####################################################################################################
@@ -21,17 +22,19 @@ end;
 
 ####################################################################################################
 
-hparams   = CNNParams()
+hparams = CNNParams()
 sparams = SampleParams()
 
-all_seqs, labels = load_balanced_data(sparams)
-X = onehot_batch(all_seqs)
-Y = onehotbatch(labels, 0:1)
+(Xtrain, Ytrain), (Xval, Yval), meta = make_dataset(sparams, hparams)
+@info "dataset sizes" meta
 
-@show size(X), size(Y)
-loader = DataLoader((X, Y); batchsize = hparams.batchsize, shuffle = hparams.shuffle)
+train_loader = DataLoader((Xtrain, Ytrain);
+    batchsize=hparams.batchsize, shuffle=hparams.shuffle)
+
+val_loader = DataLoader((Xval, Yval);
+    batchsize=hparams.batchsize, shuffle=false)
 
 model = buildCNN(hparams, sparams)
-trainCNN!(model, loader; hparams = hparams)
+result = trainCNN!(model, train_loader, val_loader; hparams=hparams)
 
 ####################################################################################################
