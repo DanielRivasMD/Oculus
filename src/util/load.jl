@@ -77,3 +77,37 @@ function load_balanced_data(params::SampleParams)
 end
 
 ####################################################################################################
+
+"""
+    make_dataset(sparams, hparams)
+
+Returns ((Xtrain, Ytrain), (Xval, Yval), meta) with tensors:
+- X: (L, 4, B)
+- Y: (2, B)
+meta carries sizes for sanity checks.
+"""
+function make_dataset(sparams::SampleParams, hparams::CNNParams)
+    all_seqs, labels = load_balanced_data(sparams)
+    X = onehot_batch(all_seqs)                 # (L,4,B)
+    Y = onehotbatch(labels, 0:1)               # (2,B)
+
+    B = size(X, 3)
+    @assert size(Y, 2) == B "X/Y batch size mismatch"
+
+    Random.seed!(sparams.seed)
+    idx = collect(1:B)
+    shuffle!(idx)
+    ntrain = round(Int, hparams.train_frac * B)
+    train_idx = idx[1:ntrain]
+    val_idx   = idx[ntrain+1:end]
+
+    Xtrain = X[:, :, train_idx]
+    Ytrain = Y[:, train_idx]
+    Xval   = X[:, :, val_idx]
+    Yval   = Y[:, val_idx]
+
+    meta = (B=B, ntrain=ntrain, nval=length(val_idx), L=size(X,1))
+    return (Xtrain, Ytrain), (Xval, Yval), meta
+end
+
+####################################################################################################
