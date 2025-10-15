@@ -11,6 +11,7 @@ using Parameters: @with_kw
     device::Function         = gpu          # gpu or cpu
     kernelsize::Int          = 5            # convulution kernel size
     epochs::Int              = 50           # number of epochs
+    train_frac::Float64      = 0.8          # data fraction for training
 
     σ::Function              = relu         # activation function
     maxpool::Int             = 2            # max pooling
