@@ -22,19 +22,24 @@ end;
 
 ####################################################################################################
 
-hparams = CNNParams()
-sparams = SampleParams()
+hparams = CNNParams(k = 5)        # train_frac = 0.75, k = 0
+sparams = SampleParams()     # seed = 1
 
-(Xtrain, Ytrain), (Xval, Yval), meta = make_dataset(sparams, hparams)
-@info "dataset sizes" meta
+datasets, meta = make_dataset(sparams, hparams)
+@info "dataset meta" meta
 
-train_loader = DataLoader((Xtrain, Ytrain);
-    batchsize=hparams.batchsize, shuffle=hparams.shuffle)
+for (i, ((Xtrain, Ytrain), (Xval, Yval))) in enumerate(datasets)
+    train_loader = DataLoader((Xtrain, Ytrain);
+        batchsize=min(hparams.batchsize, size(Xtrain,3)),
+        shuffle=hparams.shuffle)
 
-val_loader = DataLoader((Xval, Yval);
-    batchsize=hparams.batchsize, shuffle=false)
+    val_loader = DataLoader((Xval, Yval);
+        batchsize=min(hparams.batchsize, size(Xval,3)),
+        shuffle=false)
 
-model = buildCNN(hparams, sparams)
-result = trainCNN!(model, train_loader, val_loader; hparams=hparams)
+    model = buildCNN(hparams, sparams)
+    result = trainCNN!(model, train_loader, val_loader; hparams=hparams)
+    @info "Fold $i finished" val_loss=last(result.val_losses)
+end
 
 ####################################################################################################
