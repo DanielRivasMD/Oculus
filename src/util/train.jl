@@ -3,6 +3,14 @@
 using Flux
 using Flux: crossentropy, DataLoader
 
+using Flux: onecold
+
+function accuracy(model, data)
+    X, Y = data
+    ŷ = model(X)
+    mean(onecold(ŷ) .== onecold(Y))
+end
+
 ####################################################################################################
 
 """
@@ -67,45 +75,57 @@ function trainCNN!(model, train_loader::DataLoader, val_loader::Union{DataLoader
 
     train_losses = Float64[]
     val_losses   = Float64[]
+    train_accs   = Float64[]
+    val_accs     = Float64[]
 
     for epoch in 1:hparams.epochs
         # Train epoch
-        total = 0.0
-        count = 0
+        total_loss = 0.0
+        total_acc  = 0.0
+        count      = 0
         for (xb, yb) in train_loader
             xb, yb = hparams.device(xb), hparams.device(yb)
             gs, = gradient(model) do m
                 ŷ = m(xb)
                 l = loss(ŷ, yb)
-                total += l
+                total_loss += l
+                total_acc  += mean(onecold(ŷ) .== onecold(yb))
                 count += 1
                 l
             end
             Flux.update!(st, model, gs)
         end
-        train_mean = total / max(count, 1)
+        train_mean = total_loss / max(count, 1)
+        train_acc  = total_acc  / max(count, 1)
         push!(train_losses, train_mean)
+        push!(train_accs,   train_acc)
 
         # Validation epoch
         if val_loader !== nothing
-            vtotal = 0.0
-            vcount = 0
+            vtotal_loss = 0.0
+            vtotal_acc  = 0.0
+            vcount      = 0
             for (xb, yb) in val_loader
                 xb, yb = hparams.device(xb), hparams.device(yb)
                 ŷ = model(xb)
                 l = loss(ŷ, yb)
-                vtotal += l
+                vtotal_loss += l
+                vtotal_acc  += mean(onecold(ŷ) .== onecold(yb))
                 vcount += 1
             end
-            val_mean = vtotal / max(vcount, 1)
+            val_mean = vtotal_loss / max(vcount, 1)
+            val_acc  = vtotal_acc  / max(vcount, 1)
             push!(val_losses, val_mean)
-            @info "epoch=$(epoch) train_loss=$(train_mean) val_loss=$(val_mean)"
+            push!(val_accs,   val_acc)
+            @info "epoch=$(epoch) train_loss=$(train_mean) train_acc=$(train_acc) val_loss=$(val_mean) val_acc=$(val_acc)"
         else
-            @info "epoch=$(epoch) train_loss=$(train_mean)"
+            @info "epoch=$(epoch) train_loss=$(train_mean) train_acc=$(train_acc)"
         end
     end
 
-    return (model=model, train_losses=train_losses, val_losses=val_losses)
+    return (model=model,
+            train_losses=train_losses, val_losses=val_losses,
+            train_accs=train_accs,     val_accs=val_accs)
 end
 
 ####################################################################################################
