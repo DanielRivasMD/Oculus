@@ -5,19 +5,25 @@ using TOML
 
 ####################################################################################################
 
+"Convert struct fields to a Dict with Symbol keys"
 function struct_to_dict(x)
     Dict(name => getfield(x, name) for name in propertynames(x))
 end
 
+"Convert Dict with String keys (from TOML) into Dict with Symbol keys"
+function symbolise_keys(d::Dict)
+    Dict(Symbol(k) => v for (k,v) in d)
+end
+
 function load_cnnparams(path::String)
     params = CNNParams()
-    cnn_cfg = path != "" ? TOML.parsefile(path) : Dict()
+    cnn_cfg = path != "" ? symbolise_keys(TOML.parsefile(path)["cnn"]) : Dict()
 
-    if haskey(cnn_cfg, "device")
-        cnn_cfg["device"] = cnn_cfg["device"] == "gpu" ? gpu : cpu
+    if haskey(cnn_cfg, :device)
+        cnn_cfg[:device] = cnn_cfg[:device] == "gpu" ? gpu : cpu
     end
-    if haskey(cnn_cfg, "σ")
-        cnn_cfg["σ"] = cnn_cfg["σ"] == "relu" ? relu : tanh
+    if haskey(cnn_cfg, :σ)
+        cnn_cfg[:σ] = cnn_cfg[:σ] == "relu" ? relu : tanh
     end
 
     return CNNParams(; merge(struct_to_dict(params), cnn_cfg)...)
@@ -25,7 +31,7 @@ end
 
 function load_sampleparams(path::String)
     params = SampleParams()
-    sample_cfg = path != "" ? TOML.parsefile(path) : Dict()
+    sample_cfg = path != "" ? symbolise_keys(TOML.parsefile(path)["sample"]) : Dict()
     return SampleParams(; merge(struct_to_dict(params), sample_cfg)...)
 end
 
