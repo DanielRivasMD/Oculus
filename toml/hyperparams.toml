@@ -1,0 +1,32 @@
+# cnn.toml
+# Default hyperparameters for CNN training
+
+[cnn]
+# Data loading
+batchsize     = 64
+shuffle       = true
+device        = "gpu"        # options: "gpu" or "cpu"
+
+# Training
+kernelsize    = 5
+epochs        = 50
+train_frac    = 0.8
+k             = 5            # 0 = vanilla validation, >0 = k-fold CV
+
+# Model architecture
+"σ"           = "relu"       # activation function
+maxpool       = 2
+layerout1     = 32
+layerout2     = 64
+layerout3     = 128
+
+# Optimization
+"η"           = 1e-2         # learning rate
+momentum      = 0.9
+
+# Dropout rates
+dropout1      = 0.2
+dropout2      = 0.3
+dropout3      = 0.4
+dropout_dense = 0.5
+
