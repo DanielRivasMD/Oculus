@@ -1,0 +1,17 @@
+# sample.toml
+# Default parameters for SampleParams
+
+[sample]
+# Target sequence length
+seqlen = 37
+
+# Random seed for reproducibility
+seed = 42
+
+# Directory containing FASTA files
+datadir = "data/fasta"
+
+# Paths to modern and ancient FASTA files
+modern  = "data/fasta/French_37nt_head.fasta"
+ancient = "data/fasta/Neandertal_37nt_head.fasta"
+
