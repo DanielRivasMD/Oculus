@@ -4,6 +4,12 @@
 - potentially introduce regularization penalities
 - add validation set
 
+
+- techical:
+  - BUG: training accuracy
+  - add verbose option on cnn training
+  - add logging on cnn traing
+
 ==================================================
 src/cnn.jl
   line 3      TODO   load both sequences, french & neandertal, and tag for training
