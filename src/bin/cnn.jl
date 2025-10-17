@@ -12,7 +12,6 @@ end
 using Flux: DataLoader         # Mini-batch data iterator
 
 using BSON: @save
-# using ONNX
 using Dates
 
 ####################################################################################################
@@ -38,19 +37,14 @@ end;
 # Experiment setup
 ####################################################################################################
 
-# # Define hyperparameters:
-# # - k = 5 → perform 5-fold cross-validation
-# # - if k = 0, use vanilla validation with train_frac (default 0.75)
-# hparams = CNNParams(k = 5)
-
-# # Define sample parameters (sequence length, seed, FASTA paths)
-# sparams = SampleParams()
-
 # Parse CLI arguments
 args = cnn_args()
 
 hparams = load_cnnparams(args["cnn"])
 sparams = load_sampleparams(args["sample"])
+
+@info hparams
+@info sparams
 
 # Build dataset(s) according to split strategy (k-fold or vanilla)
 datasets, meta = make_dataset(sparams, hparams)
@@ -64,45 +58,34 @@ datasets, meta = make_dataset(sparams, hparams)
 for (i, ((Xtrain, Ytrain), (Xval, Yval))) in enumerate(datasets)
 
     # Construct training DataLoader
-    # - batchsize capped at dataset size to avoid warnings
-    # - shuffle enabled for training
-    train_loader = DataLoader((Xtrain, Ytrain);
-        batchsize=min(hparams.batchsize, size(Xtrain,3)),
-        shuffle=hparams.shuffle)
+    train_loader = DataLoader((Xtrain, Ytrain); batchsize=hparams.batchsize, shuffle=hparams.shuffle)
 
     # Construct validation DataLoader
-    # - no shuffling for validation
-    val_loader = DataLoader((Xval, Yval);
-        batchsize=min(hparams.batchsize, size(Xval,3)),
-        shuffle=false)
+    val_loader = DataLoader((Xval, Yval); batchsize=hparams.batchsize, shuffle=false)
 
     # Build a fresh CNN model for this fold
     model = buildCNN(hparams, sparams)
 
-    # Train model and collect losses
+    # Train model and collect metrics
     result = trainCNN!(model, train_loader, val_loader; hparams=hparams)
 
-    # Log final validation loss for this fold
+    # Log final metrics for this fold
     final_val_loss = last(result.val_losses)
-    @info "Fold $i finished" val_loss=last(result.val_losses)
+    final_val_acc  = last(result.val_accs)
+    @info "Fold $i finished" val_loss=final_val_loss val_acc=final_val_acc
 
     # Save model checkpoints
     stamp = Dates.format(now(), "yyyy-mm-dd_HHMMSS")
-
     model_cpu = Flux.fmap(cpu, model)
 
     train_losses = result.train_losses
     val_losses   = result.val_losses
+    train_accs   = result.train_accs
+    val_accs     = result.val_accs
 
     # BSON
     bson_path = joinpath(Paths.MODEL, "fold$(i)_$(stamp).bson")
-    @save bson_path model_cpu hparams sparams final_val_loss train_losses val_losses
-
-    # # ONNX
-    # # Provide a dummy input with the same shape as your training data
-    # dummy_input = rand(Float32, size(Xtrain))
-    # onnx_path = joinpath(Paths.MODEL, "fold$(i)_$(stamp).onnx")
-    # save_onnx(onnx_path, model, dummy_input)
+    @save bson_path model_cpu hparams sparams final_val_loss final_val_acc train_losses val_losses train_accs val_accs
 end
 
 ####################################################################################################
