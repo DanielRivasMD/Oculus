@@ -23,10 +23,10 @@ time via keyword arguments
 - `device::Function = gpu`  
   Device mapping function (`gpu` or `cpu`) applied to data and model.
 
-- `kernelsize::Int = 5`  
+- `kernelsize::Int = 5`
   Size of the 1D convolution kernel.
 
-- `epochs::Int = 50`  
+- `epochs::Int = 100`
   Number of training epochs.
 
 - `train_frac::Float64 = 0.8`  
@@ -81,7 +81,7 @@ hparams = CNNParams(epochs=100, batchsize=128, k=5)
     kernelsize::Int          = 5            # convulution kernel size
     epochs::Int              = 100          # number of epochs
     train_frac::Float64      = 0.8          # data fraction for training
-    k::Int                   = 5            # 0 = vanilla validation, > 0 = k-fold CV
+    k::Int                   = 0            # 0 = vanilla validation, > 0 = k-fold CV
 
     σ::Function              = relu         # activation function
     maxpool::Int             = 2            # max pooling
