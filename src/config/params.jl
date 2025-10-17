@@ -79,7 +79,7 @@ hparams = CNNParams(epochs=100, batchsize=128, k=5)
     shuffle::Bool            = true         # dataloader shuffle
     device::Function         = gpu          # gpu or cpu
     kernelsize::Int          = 5            # convulution kernel size
-    epochs::Int              = 50           # number of epochs
+    epochs::Int              = 100          # number of epochs
     train_frac::Float64      = 0.8          # data fraction for training
     k::Int                   = 5            # 0 = vanilla validation, > 0 = k-fold CV
 
