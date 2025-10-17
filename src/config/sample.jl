@@ -40,7 +40,7 @@ sparams = SampleParams(seqlen=75,
                        ancient=joinpath("data/fasta", "ancient.fasta"))
 """
 @with_kw mutable struct SampleParams
-  seqlen::Int = 50
+  seqlen::Int = 37
   seed::Int = 42
   datadir::String = Paths.FASTA
   modern::String = joinpath(datadir, "French_37nt.fasta")
