@@ -3,10 +3,11 @@
 - given that the architecture deepness is linked to the sequence length, consider using different lengths in training, or training different models
 - potentially introduce regularization penalities
 - add validation set
+- models are mediocre, test without batchnorm
+- the model length is a big concern, think about alternatives to mitigate
 
 
 - techical:
-  - BUG: training accuracy
   - add verbose option on cnn training
   - add logging on cnn traing
 
