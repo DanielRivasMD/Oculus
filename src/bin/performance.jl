@@ -1,29 +1,55 @@
+####################################################################################################
+# Imports
+####################################################################################################
+
+using CUDA                     # GPU acceleration
+
+redirect_stderr(devnull) do
+    @eval using Flux           # Core deep learning library
+    @eval using Flux           # DOC: loaded twice to avoid dependency data race issues
+end
 
 using BSON
 
-using CUDA
-using Flux
-using Flux
+####################################################################################################
+# Load configuration and utilities
+####################################################################################################
 
-include("src/config/params.jl")
-include("src/config/sample.jl")
+begin
+  # Load path definitions and ensure required directories exist
+  include(joinpath("..", "config", "paths.jl"))
+  using .Paths
+  Paths.ensure_dirs()
 
-bs = BSON.load("model/fold1_2025-10-17_123329.bson")
+  # Load configuration structs and helper modules
+  include(joinpath(Paths.CONFIG, "sample.jl"))    # SampleParams (data config)
+  include(joinpath(Paths.CONFIG, "params.jl"))    # CNNParams (hyperparameters)
+  include(joinpath(Paths.CONFIG, "args.jl"))      # Args API (now includes infer_args)
+end;
 
+####################################################################################################
+# Plotting utilities
+####################################################################################################
 
 using UnicodePlots
+using Plots
 using Weave
 
 """
-    plot_metrics(bs; backend=:unicode, outfile="metrics.html")
+    plot_metrics(bs; mode=:term, outfile="metrics.html")
 
-Plot training/validation losses and accuracies from a BSON checkpoint dictionary.
-Also logs model architecture (`model_cpu`), hyperparameters (`hparams`), and sample parameters (`sparams`).
+Render performance metrics from a BSON checkpoint.
 
-- `backend = :unicode` → terminal plots with UnicodePlots
-- `backend = :weave`   → generate an HTML report with Weave
+# Arguments
+- `bs` : Dict from BSON.load
+- `mode` : `:term` for terminal plots (UnicodePlots), `:html` for HTML report (Plots.jl)
+- `outfile` : output HTML file if `mode=:html`
+
+# Notes
+- Always prints model architecture, CNNParams, and SampleParams.
+- If `mode=:html`, a temporary .jmd file is created and deleted after weaving.
 """
-function plot_metrics(bs::Dict{Symbol,Any}; backend=:unicode, outfile="metrics.html")
+function plot_metrics(bs::Dict{Symbol,Any}; mode=:term, outfile="metrics.html")
     train_losses = bs[:train_losses]
     val_losses   = bs[:val_losses]
     train_accs   = bs[:train_accs]
@@ -34,80 +60,87 @@ function plot_metrics(bs::Dict{Symbol,Any}; backend=:unicode, outfile="metrics.h
     hparams   = bs[:hparams]
     sparams   = bs[:sparams]
 
-    if backend == :unicode
-        # Log model + params
-        println("=== Model ===")
-        println(model_cpu)
-        println("\n=== Hyperparameters (CNNParams) ===")
-        println(hparams)
-        println("\n=== Sample parameters (SampleParams) ===")
-        println(sparams)
+    println("=== Model ===")
+    println(model_cpu)
+    println("\n=== Hyperparameters (CNNParams) ===")
+    println(hparams)
+    println("\n=== Sample parameters (SampleParams) ===")
+    println(sparams)
 
-        # Loss plot
-        plt1 = lineplot(epochs, train_losses; name="train_loss", xlabel="epoch", ylabel="loss")
+    if mode == :term
+        # Terminal plots with UnicodePlots, fixed y-axis
+        plt1 = lineplot(epochs, train_losses; name="train_loss", xlabel="epoch", ylabel="loss", ylim=(0,1))
         lineplot!(plt1, epochs, val_losses; name="val_loss")
         println(plt1)
 
-        # Accuracy plot
-        plt2 = lineplot(epochs, train_accs; name="train_acc", xlabel="epoch", ylabel="accuracy")
+        plt2 = lineplot(epochs, train_accs; name="train_acc", xlabel="epoch", ylabel="accuracy", ylim=(0,1))
         lineplot!(plt2, epochs, val_accs; name="val_acc")
         println(plt2)
 
-elseif backend == :weave
-    # Convert model summary to string
-    io = IOBuffer()
-    show(io, MIME"text/plain"(), bs[:model_cpu])
-    model_str = String(take!(io))
+    elseif mode == :html
+        io = IOBuffer()
+        show(io, MIME"text/plain"(), model_cpu)
+        model_str = String(take!(io))
 
-    # Build a markdown report with model + params + plots
-    md = """
-    # Training Report
+        md = """
+        # Training Report
 
-    ## Model Summary
-    ```
-    $model_str
-    ```
+        ## Model Summary
+        ```
+        $model_str
+        ```
 
-    ## Hyperparameters
-    ```
-    $(bs[:hparams])
-    ```
+        ## Hyperparameters
+        ```
+        $hparams
+        ```
 
-    ## Sample Parameters
-    ```
-    $(bs[:sparams])
-    ```
+        ## Sample Parameters
+        ```
+        $sparams
+        ```
 
-    ## Final Metrics
-    - Final validation loss: $(bs[:final_val_loss])
-    - Final validation accuracy: $(bs[:final_val_acc])
+        ## Final Metrics
+        - Final validation loss: $(last(val_losses))
+        - Final validation accuracy: $(last(val_accs))
 
-    ## Loss Curves
-    ```julia
-    using Plots
-    plot($(1:length(bs[:train_losses])), $(bs[:train_losses]), label="train_loss")
-    plot!($(1:length(bs[:val_losses])), $(bs[:val_losses]), label="val_loss")
-    ```
+        ## Loss Curves
+        ```julia
+        using Plots
+        plot($epochs, $train_losses, label="train_loss", ylim=(0,1))
+        plot!($epochs, $val_losses, label="val_loss")
+        ```
 
-    ## Accuracy Curves
-    ```julia
-    using Plots
-    plot($(1:length(bs[:train_accs])), $(bs[:train_accs]), label="train_acc")
-    plot!($(1:length(bs[:val_accs])), $(bs[:val_accs]), label="val_acc")
-    ```
-    """
-    tmpfile = "metrics.jmd"
-    write(tmpfile, md)
-    Weave.weave(tmpfile, out_path=outfile, doctype="md2html")
-    println("HTML report written to $outfile")
+        ## Accuracy Curves
+        ```julia
+        using Plots
+        plot($epochs, $train_accs, label="train_acc", ylim=(0,1))
+        plot!($epochs, $val_accs, label="val_acc")
+        ```
+        """
+
+        tmpfile = "metrics.jmd"
+        write(tmpfile, md)
+        Weave.weave(tmpfile, out_path=outfile, doctype="md2html")
+        rm(tmpfile; force=true)
+        println("HTML report written to $outfile")
     else
-        error("Unknown backend: $backend")
+        error("Unknown mode: $mode (use :term or :html)")
     end
 end
 
-# Terminal plots
+####################################################################################################
+# Parse inference arguments
+####################################################################################################
+
+args = perf_args()
+bs   = BSON.load(args["model"])
+
+####################################################################################################
+# Run reports
+####################################################################################################
+
 plot_metrics(bs; backend=:unicode)
+plot_metrics(bs; backend=:weave, outfile=args["out"])
 
-# HTML report
-plot_metrics(bs; backend=:weave, outfile="metrics.html")
-
+####################################################################################################
