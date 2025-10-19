@@ -7,8 +7,8 @@ using Flux: onecold
 
 function accuracy(model, data)
     X, Y = data
-    ŷ = model(X)
-    mean(onecold(ŷ) .== onecold(Y))
+    yhat = model(X)
+    mean(onecold(yhat) .== onecold(Y))
 end
 
 ####################################################################################################
@@ -69,7 +69,7 @@ plot!(result.val_losses, label="val")
 function trainCNN!(model, train_loader::DataLoader, val_loader::Union{DataLoader,Nothing};
                    hparams::CNNParams)
 
-    loss(ŷ, y) = crossentropy(ŷ, y)
+    loss(yhat, y) = crossentropy(yhat, y)
     opt = OptimiserChain(Descent(hparams.η), Momentum(hparams.momentum))
     st  = Flux.setup(opt, model)
 
@@ -83,18 +83,28 @@ function trainCNN!(model, train_loader::DataLoader, val_loader::Union{DataLoader
         total_loss = 0.0
         total_acc  = 0.0
         count      = 0
+
         for (xb, yb) in train_loader
             xb, yb = hparams.device(xb), hparams.device(yb)
-            gs, = gradient(model) do m
-                ŷ = m(xb)
-                l = loss(ŷ, yb)
-                total_loss += l
-                total_acc  += mean(onecold(ŷ) .== onecold(yb))
-                count += 1
-                l
+
+            # Forward + loss inside gradient context
+            gs, l = Flux.withgradient(model) do m
+                yhat = m(xb)
+                return loss(yhat, yb)
             end
+
+            # Update parameters
             Flux.update!(st, model, gs)
+
+            # Forward again
+            yhat = model(xb)
+
+            # Accumulate metrics outside gradient tape
+            total_loss += l
+            total_acc  += mean(onecold(yhat) .== onecold(yb))
+            count += 1
         end
+
         train_mean = total_loss / max(count, 1)
         train_acc  = total_acc  / max(count, 1)
         push!(train_losses, train_mean)
@@ -107,10 +117,10 @@ function trainCNN!(model, train_loader::DataLoader, val_loader::Union{DataLoader
             vcount      = 0
             for (xb, yb) in val_loader
                 xb, yb = hparams.device(xb), hparams.device(yb)
-                ŷ = model(xb)
-                l = loss(ŷ, yb)
+                yhat = model(xb)
+                l = loss(yhat, yb)
                 vtotal_loss += l
-                vtotal_acc  += mean(onecold(ŷ) .== onecold(yb))
+                vtotal_acc  += mean(onecold(yhat) .== onecold(yb))
                 vcount += 1
             end
             val_mean = vtotal_loss / max(vcount, 1)
