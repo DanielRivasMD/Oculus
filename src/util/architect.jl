@@ -28,106 +28,95 @@ pool_out_len(seqlen::Int, p::Int, n::Int) = begin
     L
 end
 
+####################################################################################################
+
 """
     buildCNN(args::CNNParams, sample::SampleParams) -> Chain
 
-Construct a 1D convolutional neural network (CNN) for DNA sequence
-classification, parameterized by `CNNParams` and `SampleParams`.
+Construct a 1D convolutional neural network whose depth is determined
+by the length of `args.layerouts`.
+
+This function generalizes variants:
+- Each entry in `args.layerouts` defines the number of output channels
+  for one convolutional block.
+- Each entry in `args.dropouts[1:end-1]` defines the dropout probability
+  applied after the corresponding block.
+- The final entry `args.dropouts[end]` defines the dropout probability
+  applied after the dense hidden layer.
 
 # Architecture
-The network consists of three convolutional blocks followed by a dense
-classification head:
+For `n = length(args.layerouts)`:
+- Input: one-hot encoded sequence with 4 channels.
+- For each block `i = 1..n`:
+  - Conv1D(kernel = args.kernelsize, in_channels, out_channels = layerouts[i])
+  - BatchNorm(out_channels), activation = args.σ
+  - Conv1D(kernel = args.kernelsize, out_channels => out_channels)
+  - BatchNorm(out_channels), activation = args.σ
+  - MaxPool(window = args.maxpool)
+  - Dropout(dropouts[i])
+- Dense head:
+  - Flatten
+  - Dense(fin, layerouts[end]) → BatchNorm → activation → Dropout(dropouts[end])
+  - Dense(layerouts[end], 2)
+  - softmax
 
-- **Block 1**
-  - Conv1D: 4 input channels (A,C,G,T one‑hot) → `args.layerout1` filters
-  - BatchNorm, activation (`args.σ`)
-  - Conv1D: `args.layerout1` → `args.layerout1`
-  - BatchNorm, activation
-  - MaxPool with window size `args.maxpool`
-  - Dropout with probability `args.dropout1`
+Here `fin = pool_out_len(sample.seqlen, args.maxpool, n) * layerouts[end]`.
 
-- **Block 2**
-  - Conv1D: `args.layerout1` → `args.layerout2`
-  - BatchNorm, activation
-  - Conv1D: `args.layerout2` → `args.layerout2`
-  - BatchNorm, activation
-  - MaxPool, Dropout with `args.dropout2`
+# Assertions
+- `length(args.dropouts) == length(args.layerouts) + 1`
+  (one dropout per block + one for the dense head).
 
-- **Block 3**
-  - Conv1D: `args.layerout2` → `args.layerout3`
-  - BatchNorm, activation
-  - Conv1D: `args.layerout3` → `args.layerout3`
-  - BatchNorm, activation
-  - MaxPool, Dropout with `args.dropout3`
-
-- **Dense head**
-  - Flatten pooled features
-  - Dense: `fin` → `args.layerout3`
-  - BatchNorm, activation, Dropout with `args.dropout_dense`
-  - Dense: `args.layerout3` → 2 output units
-  - Softmax for class probabilities
-
-# Arguments
-- `args::CNNParams`  
-  Hyperparameters controlling kernel size, dropout rates, layer widths,
-  activation, pooling, device, etc.
-
-- `sample::SampleParams`  
-  Provides sequence length (`seqlen`), used to compute the flattened
-  feature dimension after pooling.
-
-# Returns
-- `Chain` : A Flux model ready for training. Outputs a `(2, batchsize)`
-  probability matrix for binary classification.
-
-# Notes
-- The final layer applies `softmax`, so outputs are probabilities.
-- For discrete labels, apply `argmax(model(x), dims=1) .- 1`.
-- If you prefer logits instead of probabilities, remove the `softmax`
-  layer and use `logitcrossentropy` during training.
-
-# Example
+# Usage
 ```julia
-hparams = CNNParams()
-sparams = SampleParams()
-model = buildCNN(hparams, sparams)
-ŷ = model(X)                  # probabilities
-labels = argmax(ŷ, dims=1) .- 1  # hard labels
+# 1-block CNN
+hparams = CNNParams(layerouts=[32], dropouts=[0.2, 0.5])
+model = buildCNN(hparams, sample)
+
+# 3-block CNN
+hparams = CNNParams(layerouts=[32, 64, 128], dropouts=[0.2, 0.3, 0.4, 0.5])
+model = buildCNN(hparams, sample)
+```
 """
 function buildCNN(args::CNNParams, sample::SampleParams)
-    # After 3 pooling layers of size args.maxpool
-    Lout = pool_out_len(sample.seqlen, args.maxpool, 3)
-    fin  = Lout * args.layerout3  # flattened features into Dense
+    nblocks = length(args.layerouts)
+    @assert length(args.dropouts) == nblocks + 1 "dropouts must have one entry per block + one for the dense head"
 
-    Chain(
-        # Block 1
-        Conv((args.kernelsize,), 4 => args.layerout1, pad=SamePad(), init=Flux.kaiming_uniform),
-        BatchNorm(args.layerout1), args.σ,
-        Conv((args.kernelsize,), args.layerout1 => args.layerout1, pad=SamePad(), init=Flux.kaiming_uniform),
-        BatchNorm(args.layerout1), args.σ,
-        MaxPool((args.maxpool,)), Dropout(args.dropout1),
+    # Compute flattened size after all pooling layers
+    Lout = pool_out_len(sample.seqlen, args.maxpool, nblocks)
+    fin  = Lout * args.layerouts[end]
 
-        # Block 2
-        Conv((args.kernelsize,), args.layerout1 => args.layerout2, pad=SamePad(), init=Flux.kaiming_uniform),
-        BatchNorm(args.layerout2), args.σ,
-        Conv((args.kernelsize,), args.layerout2 => args.layerout2, pad=SamePad(), init=Flux.kaiming_uniform),
-        BatchNorm(args.layerout2), args.σ,
-        MaxPool((args.maxpool,)), Dropout(args.dropout2),
+    layers = Any[]
 
-        # Block 3
-        Conv((args.kernelsize,), args.layerout2 => args.layerout3, pad=SamePad(), init=Flux.kaiming_uniform),
-        BatchNorm(args.layerout3), args.σ,
-        Conv((args.kernelsize,), args.layerout3 => args.layerout3, pad=SamePad(), init=Flux.kaiming_uniform),
-        BatchNorm(args.layerout3), args.σ,
-        MaxPool((args.maxpool,)), Dropout(args.dropout3),
+    # First block: input channels = 4
+    push!(layers,
+        Conv((args.kernelsize,), 4 => args.layerouts[1], pad=SamePad(), init=Flux.kaiming_uniform),
+        BatchNorm(args.layerouts[1]), args.σ,
+        Conv((args.kernelsize,), args.layerouts[1] => args.layerouts[1], pad=SamePad(), init=Flux.kaiming_uniform),
+        BatchNorm(args.layerouts[1]), args.σ,
+        MaxPool((args.maxpool,)), Dropout(args.dropouts[1])
+    )
 
-        # Dense head
+    # Remaining blocks
+    for i in 2:nblocks
+        push!(layers,
+            Conv((args.kernelsize,), args.layerouts[i-1] => args.layerouts[i], pad=SamePad(), init=Flux.kaiming_uniform),
+            BatchNorm(args.layerouts[i]), args.σ,
+            Conv((args.kernelsize,), args.layerouts[i] => args.layerouts[i], pad=SamePad(), init=Flux.kaiming_uniform),
+            BatchNorm(args.layerouts[i]), args.σ,
+            MaxPool((args.maxpool,)), Dropout(args.dropouts[i])
+        )
+    end
+
+    # Dense head
+    push!(layers,
         Flux.flatten,
-        Dense(fin, args.layerout3, init=Flux.kaiming_uniform),  # hidden = layerout3 (matches your earlier head)
-        BatchNorm(args.layerout3), args.σ, Dropout(args.dropout_dense),
-        Dense(args.layerout3, 2),
+        Dense(fin, args.layerouts[end], init=Flux.kaiming_uniform),
+        BatchNorm(args.layerouts[end]), args.σ, Dropout(args.dropouts[end]),
+        Dense(args.layerouts[end], 2),
         softmax
-    ) |> hparams.device
+    )
+
+    return Chain(layers...) |> args.device
 end
 
 ####################################################################################################
