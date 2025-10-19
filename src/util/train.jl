@@ -8,7 +8,7 @@ using MLUtils: DataLoader
 
 ####################################################################################################
 
-unction accuracy(model, data)
+function accuracy(model, data)
     X, Y = data
     yhat = model(X)
     mean(onecold(yhat) .== onecold(Y))
