@@ -1,11 +1,14 @@
 ####################################################################################################
 
-using Flux
 using Flux: crossentropy, DataLoader
-
 using Flux: onecold
 
-function accuracy(model, data)
+using Optimisers
+using MLUtils: DataLoader
+
+####################################################################################################
+
+unction accuracy(model, data)
     X, Y = data
     yhat = model(X)
     mean(onecold(yhat) .== onecold(Y))
@@ -58,84 +61,80 @@ logging mean training and validation losses per epoch.
 - Training and validation losses are logged with `@info` each epoch.
 - Losses are averaged across batches for stability.
 - The model is updated in place; the returned `model` is the same object.
-
-# Example
-```julia
-result = trainCNN!(model, train_loader, val_loader; hparams=hparams)
-
-plot(result.train_losses, label="train")
-plot!(result.val_losses, label="val")
 """
-function trainCNN!(model, train_loader::DataLoader, val_loader::Union{DataLoader,Nothing};
+function trainCNN!(model,
+                   train_loader::DataLoader,
+                   val_loader::Union{DataLoader,Nothing};
                    hparams::CNNParams)
 
-    loss(yhat, y) = crossentropy(yhat, y)
-    opt = OptimiserChain(Descent(hparams.η), Momentum(hparams.momentum))
-    st  = Flux.setup(opt, model)
+    # -------------------------------------------------------------------------
+    # Optimiser setup
+    # -------------------------------------------------------------------------
+    opt = Optimisers.OptimiserChain(
+        Optimisers.Descent(hparams.η),
+        Optimisers.Momentum(hparams.momentum)
+    )
+    opt_state = Optimisers.setup(opt, model)
 
-    train_losses = Float64[]
-    val_losses   = Float64[]
-    train_accs   = Float64[]
-    val_accs     = Float64[]
+    # Loss function
+    lossfn(m, xb, yb) = Flux.crossentropy(m(xb), yb)
 
+    # Metrics storage
+    train_losses = Float32[]
+    val_losses   = Float32[]
+    train_accs   = Float32[]
+    val_accs     = Float32[]
+
+    # -------------------------------------------------------------------------
+    # Epoch loop
+    # -------------------------------------------------------------------------
     for epoch in 1:hparams.epochs
-        # Train epoch
-        total_loss = 0.0
-        total_acc  = 0.0
-        count      = 0
+        eloss = 0.0f0; ecorr = 0; ecnt = 0
 
+        # Training loop
         for (xb, yb) in train_loader
-            xb, yb = hparams.device(xb), hparams.device(yb)
+            xb = hparams.device(xb)
+            yb = hparams.device(yb)
 
-            # Forward + loss inside gradient context
-            gs, l = Flux.withgradient(model) do m
-                yhat = m(xb)
-                return loss(yhat, yb)
-            end
+            # Compute loss and gradient tree
+            loss_val, grads = Flux.withgradient(m -> lossfn(m, xb, yb), model)
 
-            # Update parameters
-            Flux.update!(st, model, gs)
+            # Update optimiser state and model
+            opt_state, model = Optimisers.update!(opt_state, model, grads[1])
 
-            # Forward again
-            yhat = model(xb)
-
-            # Accumulate metrics outside gradient tape
-            total_loss += l
-            total_acc  += mean(onecold(yhat) .== onecold(yb))
-            count += 1
+            # Metrics
+            eloss += loss_val
+            ŷ = model(xb)
+            ecorr += sum(Flux.onecold(ŷ) .== Flux.onecold(yb))
+            ecnt  += size(yb, 2)
         end
 
-        train_mean = total_loss / max(count, 1)
-        train_acc  = total_acc  / max(count, 1)
-        push!(train_losses, train_mean)
-        push!(train_accs,   train_acc)
+        push!(train_losses, eloss / max(ecnt, 1))
+        push!(train_accs, ecorr / max(ecnt, 1))
 
-        # Validation epoch
+        # Validation loop (only if provided)
         if val_loader !== nothing
-            vtotal_loss = 0.0
-            vtotal_acc  = 0.0
-            vcount      = 0
+            vloss = 0.0f0; vcorr = 0; vcnt = 0
             for (xb, yb) in val_loader
-                xb, yb = hparams.device(xb), hparams.device(yb)
-                yhat = model(xb)
-                l = loss(yhat, yb)
-                vtotal_loss += l
-                vtotal_acc  += mean(onecold(yhat) .== onecold(yb))
-                vcount += 1
+                xb = hparams.device(xb)
+                yb = hparams.device(yb)
+
+                ŷ = model(xb)
+                vloss += Flux.crossentropy(ŷ, yb)
+                vcorr += sum(Flux.onecold(ŷ) .== Flux.onecold(yb))
+                vcnt  += size(yb, 2)
             end
-            val_mean = vtotal_loss / max(vcount, 1)
-            val_acc  = vtotal_acc  / max(vcount, 1)
-            push!(val_losses, val_mean)
-            push!(val_accs,   val_acc)
-            @info "epoch=$(epoch) train_loss=$(train_mean) train_acc=$(train_acc) val_loss=$(val_mean) val_acc=$(val_acc)"
+            push!(val_losses, vloss / max(vcnt, 1))
+            push!(val_accs, vcorr / max(vcnt, 1))
         else
-            @info "epoch=$(epoch) train_loss=$(train_mean) train_acc=$(train_acc)"
+            push!(val_losses, NaN32)
+            push!(val_accs, NaN32)
         end
+
+        @info "epoch $epoch" train_loss=train_losses[end] train_acc=train_accs[end] val_loss=val_losses[end] val_acc=val_accs[end]
     end
 
-    return (model=model,
-            train_losses=train_losses, val_losses=val_losses,
-            train_accs=train_accs,     val_accs=val_accs)
+    return (; train_losses, val_losses, train_accs, val_accs, model, opt_state)
 end
 
 ####################################################################################################
