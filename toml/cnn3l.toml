@@ -1,0 +1,18 @@
+# Hyperparameters for a 3-block CNN
+[cnn]
+batchsize   = 64
+shuffle     = true
+device      = "gpu"
+kernelsize  = 5
+epochs      = 100
+train_frac  = 0.8
+k           = 0
+
+"σ"         = "relu"
+maxpool     = 2
+"η"         = 0.001
+momentum    = 0.9
+
+# Three conv blocks + one dense head
+dropouts    = [0.2, 0.3, 0.4, 0.5]   # 3 conv blocks + dense head
+layerouts   = [32, 64, 128]          # filters per conv block
