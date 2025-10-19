@@ -1,4 +1,4 @@
-# samples from median length distribution
+# compile test
 [sample]
 # Target sequence length
 seqlen = 37
@@ -10,6 +10,7 @@ seed = 42
 datadir = "data/fasta"
 
 # Paths to modern and ancient FASTA files
-modern  = "data/fasta/French_37nt.fasta"
-ancient = "data/fasta/Neandertal_37nt.fasta"
+modern  = "data/fasta/French_37nt_ctest.fasta"
+ancient = "data/fasta/Neandertal_37nt_ctest.fasta"
+
 
