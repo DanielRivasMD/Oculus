@@ -30,6 +30,16 @@ end
 
 ####################################################################################################
 
+function maybe_bn(channels, args)
+    args.batchnorm ? BatchNorm(channels) : identity
+end
+
+function maybe_do(p, args)
+    args.dropout ? Dropout(p) : identity
+end
+
+####################################################################################################
+
 """
     buildCNN(args::CNNParams, sample::SampleParams) -> Chain
 
@@ -79,7 +89,7 @@ model = buildCNN(hparams, sample)
 """
 function buildCNN(args::CNNParams, sample::SampleParams)
     nblocks = length(args.layerouts)
-    @assert length(args.dropouts) == nblocks + 1 "dropouts must have one entry per block + one for the dense head"
+    @assert length(args.dropouts) == nblocks + 1
 
     # Compute flattened size after all pooling layers
     Lout = pool_out_len(sample.seqlen, args.maxpool, nblocks)
@@ -89,21 +99,25 @@ function buildCNN(args::CNNParams, sample::SampleParams)
 
     # First block: input channels = 4
     push!(layers,
-        Conv((args.kernelsize,), 4 => args.layerouts[1], pad=SamePad(), init=Flux.kaiming_uniform),
-        BatchNorm(args.layerouts[1]), args.σ,
-        Conv((args.kernelsize,), args.layerouts[1] => args.layerouts[1], pad=SamePad(), init=Flux.kaiming_uniform),
-        BatchNorm(args.layerouts[1]), args.σ,
-        MaxPool((args.maxpool,)), Dropout(args.dropouts[1])
+        Conv((args.kernelsize,), 4 => args.layerouts[1],
+             pad=SamePad(), init=Flux.kaiming_uniform),
+        maybe_bn(args.layerouts[1], args), args.σ,
+        Conv((args.kernelsize,), args.layerouts[1] => args.layerouts[1],
+             pad=SamePad(), init=Flux.kaiming_uniform),
+        maybe_bn(args.layerouts[1], args), args.σ,
+        MaxPool((args.maxpool,)), maybe_do(args.dropouts[1], args)
     )
 
     # Remaining blocks
     for i in 2:nblocks
         push!(layers,
-            Conv((args.kernelsize,), args.layerouts[i-1] => args.layerouts[i], pad=SamePad(), init=Flux.kaiming_uniform),
-            BatchNorm(args.layerouts[i]), args.σ,
-            Conv((args.kernelsize,), args.layerouts[i] => args.layerouts[i], pad=SamePad(), init=Flux.kaiming_uniform),
-            BatchNorm(args.layerouts[i]), args.σ,
-            MaxPool((args.maxpool,)), Dropout(args.dropouts[i])
+            Conv((args.kernelsize,), args.layerouts[i-1] => args.layerouts[i],
+                 pad=SamePad(), init=Flux.kaiming_uniform),
+            maybe_bn(args.layerouts[i], args), args.σ,
+            Conv((args.kernelsize,), args.layerouts[i] => args.layerouts[i],
+                 pad=SamePad(), init=Flux.kaiming_uniform),
+            maybe_bn(args.layerouts[i], args), args.σ,
+            MaxPool((args.maxpool,)), maybe_do(args.dropouts[i], args)
         )
     end
 
@@ -111,7 +125,8 @@ function buildCNN(args::CNNParams, sample::SampleParams)
     push!(layers,
         Flux.flatten,
         Dense(fin, args.layerouts[end], init=Flux.kaiming_uniform),
-        BatchNorm(args.layerouts[end]), args.σ, Dropout(args.dropouts[end]),
+        maybe_bn(args.layerouts[end], args), args.σ,
+        maybe_do(args.dropouts[end], args),
         Dense(args.layerouts[end], 2),
         softmax
     )
