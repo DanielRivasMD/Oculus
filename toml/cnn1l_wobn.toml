@@ -1,0 +1,22 @@
+# Hyperparameters for a 1‑block CNN. L2 reg, no BN, no Dropout
+[cnn]
+batchsize   = 64
+shuffle     = true
+device      = "gpu"
+kernelsize  = 5
+epochs      = 100
+train_frac  = 0.8
+k           = 0
+
+"σ"         = "relu"
+maxpool     = 2
+"η"         = 0.001
+momentum    = 0.9
+
+# One conv block + one dense head
+dropouts    = [0.0, 0.0]     # disable dropout (conv block, dense head)
+layerouts   = [32]           # single conv block with 32 filters
+
+"λ"         = 0.001          # L2 regularization strength
+batchnorm   = false          # disable BatchNorm
+dropout     = false          # disable Dropout
