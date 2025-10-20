@@ -5,6 +5,7 @@ using Flux: onecold
 
 using Optimisers
 using MLUtils: DataLoader
+using Zygote
 
 ####################################################################################################
 
@@ -67,17 +68,25 @@ function trainCNN!(model,
                    val_loader::Union{DataLoader,Nothing};
                    hparams::CNNParams)
 
-    # -------------------------------------------------------------------------
     # Optimiser setup
-    # -------------------------------------------------------------------------
     opt = Optimisers.OptimiserChain(
         Optimisers.Descent(hparams.η),
         Optimisers.Momentum(hparams.momentum)
     )
     opt_state = Optimisers.setup(opt, model)
 
-    # Loss function
-    lossfn(m, xb, yb) = Flux.crossentropy(m(xb), yb)
+    # Loss function with optional L2 regularization
+    function lossfn(m, xb, yb)
+        ce = Flux.crossentropy(m(xb), yb)
+        if !isnan(hparams.λ)
+            reg = hparams.λ * Zygote.ignore() do
+                sum(p -> sum(abs2, p), Flux.params(m))
+            end
+            return ce + reg
+        else
+            return ce
+        end
+    end
 
     # Metrics storage
     train_losses = Float32[]
@@ -85,9 +94,7 @@ function trainCNN!(model,
     train_accs   = Float32[]
     val_accs     = Float32[]
 
-    # -------------------------------------------------------------------------
     # Epoch loop
-    # -------------------------------------------------------------------------
     for epoch in 1:hparams.epochs
         eloss = 0.0f0; ecorr = 0; ecnt = 0
 
