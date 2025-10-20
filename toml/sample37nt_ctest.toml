@@ -12,5 +12,3 @@ datadir = "data/fasta"
 # Paths to modern and ancient FASTA files
 modern  = "data/fasta/French_37nt_ctest.fasta"
 ancient = "data/fasta/Neandertal_37nt_ctest.fasta"
-
-
