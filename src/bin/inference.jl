@@ -2,6 +2,9 @@
 # Imports
 ####################################################################################################
 
+# TODO: fixed output naming
+# TODO: pass seq len as arg
+
 using CUDA                     # GPU acceleration
 
 redirect_stderr(devnull) do
@@ -18,43 +21,18 @@ using ArgParse
 using FilePathsBase: basename, splitext, joinpath
 
 ####################################################################################################
-# Load configuration and utilities
+# Load configuration
 ####################################################################################################
 
-using Parameters: @with_kw
-
-# temp declaration for compatibility
-@with_kw mutable struct CNNParams
-    batchsize::Int           = 64           # dataloader batch size
-    shuffle::Bool            = true         # dataloader shuffle
-    device::Function         = gpu          # gpu or cpu
-    kernelsize::Int          = 5            # convulution kernel size
-    epochs::Int              = 100          # number of epochs
-    train_frac::Float64      = 0.8          # data fraction for training
-    k::Int                   = 0            # 0 = vanilla validation, > 0 = k-fold CV
-
-    σ::Function              = relu         # activation function
-    maxpool::Int             = 2            # max pooling
-    η::Float64               = 1e-2         # learning rate
-    momentum::Float64        = 0.9          # optimizer momentum
-    dropout1::Float64        = 0.2          # block 1 dropout
-    dropout2::Float64        = 0.3          # block 2 dropout
-    dropout3::Float64        = 0.4          # block 3 dropout
-    dropout_dense::Float64   = 0.5          # head dropout
-    layerout1::Int           = 32           # neuron number out block 1
-    layerout2::Int           = 64           # neuron number out block 2
-    layerout3::Int           = 128          # neuron number out block 3
-end
-
 begin
-  # Load path definitions and ensure required directories exist
-  include(joinpath("..", "config", "paths.jl"))
+  # Load path definitions
+  include(joinpath(PROGRAM_FILE === nothing ? "src" : "..", "config", "paths.jl"))
   using .Paths
   Paths.ensure_dirs()
 
-  # Load configuration structs and helper modules
+  # Load configuration structs
   include(joinpath(Paths.CONFIG, "sample.jl"))    # SampleParams (data config)
-  # include(joinpath(Paths.CONFIG, "params.jl"))    # CNNParams (hyperparameters)
+  include(joinpath(Paths.CONFIG, "params.jl"))    # CNNParams (hyperparameters)
   include(joinpath(Paths.CONFIG, "args.jl"))      # Args API
   include(joinpath(Paths.UTIL, "load.jl"))        # Data loading and preprocessing
 end;
@@ -64,17 +42,36 @@ end;
 ####################################################################################################
 
 """
-    fix_length_37(seq::LongDNA{4}) -> LongDNA{4}
+    fix_length(seq::LongDNA{4}, L::Int) -> LongDNA{4}
 
-Truncate or pad a DNA sequence to exactly 37 nt.
-- Longer sequences are truncated to the first 37 bases.
-- Shorter sequences are right‑padded with N.
+Truncate or pad a DNA sequence to exactly `L` nucleotides.
+
+- If the sequence is longer than `L`, it is truncated to the first `L` bases.
+- If the sequence is shorter than `L`, it is right‑padded with `N`.
+- If the sequence is already length `L`, it is returned unchanged.
+
+# Example
+```julia
+julia> using BioSequences
+
+julia> seq = dna"ACGTACGT"
+8nt DNA Sequence:
+ACGTACGT
+
+julia> fix_length(seq, 12)
+12nt DNA Sequence:
+ACGTACGTNNNN
+
+julia> fix_length(seq, 4)
+4nt DNA Sequence:
+ACGT
 """
-function fix_length_37(seq::LongDNA{4})
-    if length(seq) > 37
-        return seq[1:37]  # slicing preserves LongDNA{4}
-    elseif length(seq) < 37
-        padded_str = String(seq) * repeat("N", 37 - length(seq))
+function fix_length(seq::LongDNA{4}, L::Int)
+    len = length(seq)
+    if len > L
+        return seq[1:L]  # slicing preserves LongDNA{4}
+    elseif len < L
+        padded_str = String(seq) * repeat("N", L - len)
         return LongDNA{4}(padded_str)
     else
         return seq
@@ -89,7 +86,7 @@ Run inference on a single sequence, forcing length 37.
   and the raw probability vector.
 """
 function predict_one(model, seq::LongDNA{4})
-    s = fix_length_37(seq)
+    s = fix_length(seq, 37)
     X = onehot_encode(s)            # (37, 4)
     X = reshape(X, 37, 4, 1)        # (length, channels, batch)
     probs = model(X)                # (2, 1)
@@ -131,7 +128,7 @@ model = bs[:model_cpu] |> cpu
 # Parse model name
 modelname = splitext(basename(args["model"]))[1]
 
-# Parse sample name and rootdir from data path
+# Parse file name
 datapath   = args["data"]
 samplefile = basename(datapath)
 samplebase = replace(samplefile, r"\.fastq.*" => "")
