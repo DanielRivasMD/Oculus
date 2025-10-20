@@ -1,0 +1,14 @@
+# compile test
+[sample]
+# Target sequence length
+seqlen = 75
+
+# Random seed for reproducibility
+seed = 42
+
+# Directory containing FASTA files
+datadir = "data/fasta"
+
+# Paths to modern and ancient FASTA files
+modern  = "data/fasta/French_75nt_ctest.fasta"
+ancient = "data/fasta/Neandertal_75nt_ctest.fasta"
