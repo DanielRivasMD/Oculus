@@ -147,3 +147,26 @@ function infer_args()
 end
 
 ####################################################################################################
+
+function sysimage_args()
+    desc =
+        "\e[1;32mDaniel Rivas\e[0m " *
+        "\e[3;90m<danielrivasmd@gmail.com>\e[0m\n\n\n\n\n" *
+        "Build a custom Julia sysimage for a script\n"
+
+    s = ArgParseSettings(description = desc)
+
+    @add_arg_table s begin
+        "script"
+            help = "Path to the Julia script to analyze"
+            arg_type = String
+
+        "--out"
+            help = "Output sysimage path (default = <scriptname>.so)"
+            default = nothing
+    end
+
+    return parse_args(s)
+end
+
+####################################################################################################
