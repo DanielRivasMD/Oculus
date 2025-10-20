@@ -16,16 +16,16 @@ using Dates
 using FilePathsBase: basename, splitext
 
 ####################################################################################################
-# Load configuration and utilities
+# Load configuration
 ####################################################################################################
 
 begin
-  # Load path definitions and ensure required directories exist
-  include(joinpath("..", "config", "paths.jl"))
+  # Load path definitions
+  include(joinpath(PROGRAM_FILE === nothing ? "src" : "..", "config", "paths.jl"))
   using .Paths
   Paths.ensure_dirs()
 
-  # Load configuration structs and helper modules
+  # Load configuration structs
   include(joinpath(Paths.CONFIG, "sample.jl"))    # SampleParams (data config)
   include(joinpath(Paths.CONFIG, "params.jl"))    # CNNParams (hyperparameters)
   include(joinpath(Paths.CONFIG, "args.jl"))      # Args API
