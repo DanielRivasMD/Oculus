@@ -12,16 +12,16 @@ end
 using BSON
 
 ####################################################################################################
-# Load configuration and utilities
+# Load configuration
 ####################################################################################################
 
 begin
-  # Load path definitions and ensure required directories exist
-  include(joinpath("..", "config", "paths.jl"))
+  # Load path definitions
+  include(joinpath(PROGRAM_FILE === nothing ? "src" : "..", "config", "paths.jl"))
   using .Paths
   Paths.ensure_dirs()
 
-  # Load configuration structs and helper modules
+  # Load configuration structs
   include(joinpath(Paths.CONFIG, "sample.jl"))    # SampleParams (data config)
   include(joinpath(Paths.CONFIG, "params.jl"))    # CNNParams (hyperparameters)
   include(joinpath(Paths.CONFIG, "args.jl"))      # Args API (now includes infer_args)
@@ -48,6 +48,17 @@ Render performance metrics from a BSON checkpoint.
 # Notes
 - Always prints model architecture, CNNParams, and SampleParams.
 - If `mode=:html`, a temporary .jmd file is created and deleted after weaving.
+
+# Example
+```julia
+using BSON
+bs = BSON.load("model.bson")
+
+# Terminal plots
+plot_metrics(bs; mode=:term)
+
+# HTML report
+plot_metrics(bs; mode=:html, outfile="reports/cnn3.html")
 """
 function plot_metrics(bs::Dict{Symbol,Any}; mode=:term, outfile="metrics.html")
     train_losses = bs[:train_losses]
@@ -130,17 +141,14 @@ function plot_metrics(bs::Dict{Symbol,Any}; mode=:term, outfile="metrics.html")
 end
 
 ####################################################################################################
-# Parse inference arguments
+# Run reports (CLI only)
 ####################################################################################################
 
-args = perf_args()
-bs   = BSON.load(args["model"])
-
-####################################################################################################
-# Run reports
-####################################################################################################
-
-plot_metrics(bs; backend=:unicode)
-plot_metrics(bs; backend=:weave, outfile=args["out"])
+if !isinteractive() && PROGRAM_FILE !== nothing
+    args = perf_args()
+    bs   = BSON.load(args["model"])
+    mode = get(args, "mode", "html") == "term" ? :term : :html
+    plot_metrics(bs; mode=mode, outfile=args["out"])
+end
 
 ####################################################################################################
