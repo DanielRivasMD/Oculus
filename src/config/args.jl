@@ -6,6 +6,11 @@ using FilePathsBase: basename, splitext, joinpath, dirname, isabspath, isdir, mk
 
 ####################################################################################################
 
+const HELP = "\e[1;32mDaniel Rivas\e[0m " *
+"\e[3;90m<danielrivasmd@gmail.com>\e[0m\n\n\n\n\n"
+
+####################################################################################################
+
 "Convert struct fields to a Dict with Symbol keys"
 function struct_to_dict(x)
     Dict(name => getfield(x, name) for name in propertynames(x))
@@ -39,9 +44,7 @@ end
 ####################################################################################################
 
 function cnn_args()
-    desc =
-        "\e[1;32mDaniel Rivas\e[0m " *
-        "\e[3;90m<danielrivasmd@gmail.com>\e[0m\n\n\n\n\n" *
+    desc = HELP *
         "Train Oculus, CNN for ancient DNA identification\n"
 
     s = ArgParseSettings(description = desc)
@@ -62,9 +65,7 @@ end
 ####################################################################################################
 
 function perf_args()
-    desc =
-        "\e[1;32mDaniel Rivas\e[0m " *
-        "\e[3;90m<danielrivasmd@gmail.com>\e[0m\n\n\n\n\n" *
+    desc = HELP *
         "Performance reporting for Oculus CNN training runs\n"
 
     s = ArgParseSettings(description = desc)
@@ -110,9 +111,7 @@ end
 ####################################################################################################
 
 function infer_args()
-    desc =
-        "\e[1;32mDaniel Rivas\e[0m " *
-        "\e[3;90m<danielrivasmd@gmail.com>\e[0m\n\n\n\n\n" *
+    desc = HELP *
         "Inference with Oculus CNN on ancient DNA samples\n"
 
     s = ArgParseSettings(description = desc)
@@ -149,9 +148,7 @@ end
 ####################################################################################################
 
 function sysimage_args()
-    desc =
-        "\e[1;32mDaniel Rivas\e[0m " *
-        "\e[3;90m<danielrivasmd@gmail.com>\e[0m\n\n\n\n\n" *
+    desc = HELP *
         "Build a custom Julia sysimage for a script\n"
 
     s = ArgParseSettings(description = desc)
@@ -164,9 +161,25 @@ function sysimage_args()
         "--out"
             help = "Output sysimage path (default = <scriptname>.so)"
             default = nothing
+
+        "--middleman"
+            help = "Use an intermediary precompile driver file (default = false)"
+            action = :store_true
+
+        "--exclude"
+            help = "Comma-separated list of packages to exclude"
+            arg_type = String
+            default = ""
     end
 
-    return parse_args(s)
+    args = parse_args(s)
+
+    # Normalize exclude into a Vector{String}
+    excl = isempty(args["exclude"]) ? String[] :
+           split(args["exclude"], ',') .|> strip
+    args["exclude"] = excl
+
+    return args
 end
 
 ####################################################################################################
