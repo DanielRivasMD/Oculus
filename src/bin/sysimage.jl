@@ -11,28 +11,28 @@ using UUIDs
 ####################################################################################################
 
 begin
-  # Load path definitions
   include(joinpath(PROGRAM_FILE === nothing ? "src" : "..", "config", "paths.jl"))
   using .Paths
   Paths.ensure_dirs()
 
-  # Load configuration structs
-  include(joinpath(Paths.CONFIG, "args.jl"))      # Args API (now includes infer_args)
-end;
+  include(joinpath(Paths.CONFIG, "args.jl"))
+end
 
 ####################################################################################################
 
 """
-    build_sysimage(script::AbstractString; sysimage_path=nothing)
+    build_sysimage(script::AbstractString; sysimage_path=nothing, middleman::Bool=false, exclude=String[])
 
 Read a Julia script, extract its `using`/`import` dependencies,
 and build a sysimage named after the script (without extension).
-"""
-function build_sysimage(script::AbstractString; sysimage_path=nothing)
-    # Read script lines
-    lines = readlines(script)
 
-    # Regex to capture package names from `using`, `import`, or `@eval using`
+- If `middleman=true`, generate a temporary driver file that imports the
+  dependencies and feed it to PackageCompiler. Otherwise, build directly.
+- If `exclude` is provided, those packages are removed from the build.
+"""
+function build_sysimage(script::AbstractString; sysimage_path=nothing,
+                        middleman::Bool=false, exclude::Vector{String}=String[])
+    lines = readlines(script)
     pat = r"^(?:@eval\s+)?(?:using|import)\s+([A-Za-z0-9_.]+)"
 
     pkgs = String[]
@@ -40,16 +40,10 @@ function build_sysimage(script::AbstractString; sysimage_path=nothing)
         m = match(pat, strip(line))
         if m !== nothing
             raw = m.captures[1]
-
-            # Skip relative modules (e.g. `.Paths`)
             if startswith(raw, ".")
                 continue
             end
-
-            # Take the top-level package (before any '.')
             top = split(raw, '.')[1]
-
-            # Only push valid identifiers
             if !isempty(top) && occursin(r"^[A-Za-z]\w*$", top)
                 push!(pkgs, top)
             end
@@ -57,27 +51,37 @@ function build_sysimage(script::AbstractString; sysimage_path=nothing)
     end
     pkgs = unique(pkgs)
 
-    # Default sysimage path goes into Paths.SYSIMAGE
+    # Apply exclusions
+    if !isempty(exclude)
+        pkgs = setdiff(pkgs, exclude)
+    end
+
     scriptname = splitext(basename(script))[1]
     default_path = joinpath(Paths.SYSIMAGE, scriptname * ".so")
     sysimage_path = isnothing(sysimage_path) ? default_path : sysimage_path
 
-    # Write temporary driver that just imports the packages
-    tmpfile = joinpath(pwd(), "precompile_driver_" * string(uuid4()) * ".jl")
-    open(tmpfile, "w") do io
-        for pkg in pkgs
-            println(io, "using $pkg")
-        end
-    end
-
     println("Building sysimage $sysimage_path with packages: ", pkgs)
 
-    create_sysimage(Symbol.(pkgs);
-        sysimage_path=sysimage_path,
-        precompile_execution_file=tmpfile
-    )
+    if middleman
+        tmpfile = joinpath(pwd(), "precompile_driver_" * string(uuid4()) * ".jl")
+        open(tmpfile, "w") do io
+            for pkg in pkgs
+                println(io, "using $pkg")
+            end
+        end
 
-    rm(tmpfile; force=true)
+        create_sysimage(Symbol.(pkgs);
+            sysimage_path=sysimage_path,
+            precompile_execution_file=tmpfile
+        )
+
+        rm(tmpfile; force=true)
+    else
+        create_sysimage(Symbol.(pkgs);
+            sysimage_path=sysimage_path
+        )
+    end
+
     println("Sysimage written to $sysimage_path")
 end
 
@@ -86,7 +90,10 @@ end
 # CLI entrypoint
 if abspath(PROGRAM_FILE) == @__FILE__
     args = sysimage_args()
-    build_sysimage(args["script"]; sysimage_path=args["out"])
+    build_sysimage(args["script"];
+        sysimage_path=args["out"],
+        middleman=args["middleman"],
+        exclude=args["exclude"])
 end
 
 ####################################################################################################
