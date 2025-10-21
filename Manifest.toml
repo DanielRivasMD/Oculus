@@ -112,9 +112,9 @@ version = "0.3.9"
 
 [[deps.BangBang]]
 deps = ["Accessors", "ConstructionBase", "InitialValues", "LinearAlgebra"]
-git-tree-sha1 = "ed75e6f41759e60473a86f9d7e903876cfd25648"
+git-tree-sha1 = "a49f9342fc60c2a2aaa4e0934f06755464fcf438"
 uuid = "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
-version = "0.4.5"
+version = "0.4.6"
 
     [deps.BangBang.extensions]
     BangBangChainRulesCoreExt = "ChainRulesCore"
@@ -454,9 +454,9 @@ version = "0.1.11"
 
 [[deps.Expat_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "7bb1361afdb33c7f2b085aa49ea8fe1b0fb14e58"
+git-tree-sha1 = "27af30de8b5445644e8ffe3bcb0d72049c089cf1"
 uuid = "2e619515-83b5-522b-bb60-26c02a35a201"
-version = "2.7.1+0"
+version = "2.7.3+0"
 
 [[deps.ExprTools]]
 git-tree-sha1 = "27415f162e6028e81c72b82ef756bf321213b6ec"
@@ -1572,9 +1572,9 @@ version = "1.7.1"
 
 [[deps.StatsBase]]
 deps = ["AliasTables", "DataAPI", "DataStructures", "LinearAlgebra", "LogExpFunctions", "Missings", "Printf", "Random", "SortingAlgorithms", "SparseArrays", "Statistics", "StatsAPI"]
-git-tree-sha1 = "2c962245732371acd51700dbb268af311bddd719"
+git-tree-sha1 = "a136f98cefaf3e2924a66bd75173d1c891ab7453"
 uuid = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
-version = "0.34.6"
+version = "0.34.7"
 
 [[deps.StringEncodings]]
 deps = ["Libiconv_jll"]
