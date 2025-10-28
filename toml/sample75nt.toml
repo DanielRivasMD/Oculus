@@ -1,4 +1,3 @@
-# samples as performed by python version
 [sample]
 # Target sequence length
 seqlen = 75
