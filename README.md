@@ -82,6 +82,7 @@ julia --project src/bin/inference.jl --help
 The expected data path structure (shown below) will be created and checked at the start of any run.
 Thus, running `help` will trigger the path creation.
 
+```
 Oculus/
 ├── data/
 │   ├── bam/
@@ -90,6 +91,7 @@ Oculus/
 ├── graph/
 │   └── performance/
 └── model/
+```
 
 By using `Parameters.jl` and `CNNParams` / `SampleParams` structs the user can control all of the parameters of the model in a user friendly way.
 These structs can also be bound to `toml` files at the command line.
