@@ -3,7 +3,7 @@
 batchsize   = 64
 shuffle     = true
 device      = "gpu"
-kernelsize  = 5
+kernelsize  = 20
 epochs      = 100
 train_frac  = 0.8
 k           = 0
