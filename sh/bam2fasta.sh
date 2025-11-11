@@ -4,14 +4,6 @@
 # Filters out non-canonical contigs (keeps only chr1–chr22, chrX, chrY, chrM)
 
 ####################################################################################################
-# Usage:
-#   ./bam2fasta.sh [--whole | --per-chrom]
-#
-# Options:
-#   --whole       Convert entire BAM into one FASTA (default)
-#   --per-chrom   Split BAM by chromosome, appending _chrN to filenames
-#   -h, --help    Show this help message
-####################################################################################################
 
 show_help() {
   cat <<EOF
@@ -32,6 +24,8 @@ It will produce FASTAs in:
   data/fasta/
 EOF
 }
+
+####################################################################################################
 
 MODE="whole"
 
