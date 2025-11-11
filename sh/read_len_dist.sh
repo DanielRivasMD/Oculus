@@ -2,13 +2,6 @@
 # Compute read length distribution from a FASTA file
 
 ####################################################################################################
-# Usage:
-#   ./read_len_dist.sh <fasta_file> [--csv output.csv]
-#
-# Example:
-#   ./read_len_dist.sh data/fasta/French.fasta
-#   ./read_len_dist.sh data/fasta/French.fasta --csv lengths.csv
-####################################################################################################
 
 show_help() {
   cat <<EOF
@@ -24,6 +17,8 @@ Options:
   -h, --help     Show this help message
 EOF
 }
+
+####################################################################################################
 
 if [ $# -lt 1 ]; then
   show_help
