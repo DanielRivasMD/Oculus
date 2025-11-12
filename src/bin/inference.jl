@@ -1,9 +1,9 @@
+# TODO: fixed output naming
+# TODO: pass seq len as arg
+
 ####################################################################################################
 # Imports
 ####################################################################################################
-
-# TODO: fixed output naming
-# TODO: pass seq len as arg
 
 using CUDA                     # GPU acceleration
 
@@ -18,7 +18,7 @@ using BioSequences
 using FASTX
 using CodecZlib
 using ArgParse
-using FilePathsBase: basename, splitext, joinpath
+using FilePathsBase: basename, splitext, joinpath, dirname
 
 ####################################################################################################
 # Load configuration
@@ -38,38 +38,18 @@ begin
 end;
 
 ####################################################################################################
-# Helper function
+# Helper functions
 ####################################################################################################
 
 """
     fix_length(seq::LongDNA{4}, L::Int) -> LongDNA{4}
 
 Truncate or pad a DNA sequence to exactly `L` nucleotides.
-
-- If the sequence is longer than `L`, it is truncated to the first `L` bases.
-- If the sequence is shorter than `L`, it is right‑padded with `N`.
-- If the sequence is already length `L`, it is returned unchanged.
-
-# Example
-```julia
-julia> using BioSequences
-
-julia> seq = dna"ACGTACGT"
-8nt DNA Sequence:
-ACGTACGT
-
-julia> fix_length(seq, 12)
-12nt DNA Sequence:
-ACGTACGTNNNN
-
-julia> fix_length(seq, 4)
-4nt DNA Sequence:
-ACGT
 """
 function fix_length(seq::LongDNA{4}, L::Int)
     len = length(seq)
     if len > L
-        return seq[1:L]  # slicing preserves LongDNA{4}
+        return seq[1:L]
     elseif len < L
         padded_str = String(seq) * repeat("N", L - len)
         return LongDNA{4}(padded_str)
@@ -79,16 +59,34 @@ function fix_length(seq::LongDNA{4}, L::Int)
 end
 
 """
-    predict_one(model, seq::LongDNA{4}) -> (pred, probs)
+    detect_seq_length(seqs::Vector{LongDNA{4}}) -> Int
 
-Run inference on a single sequence, forcing length 37.
-- Returns the predicted class (0 = French, 1 = Neandertal)
-  and the raw probability vector.
+Return the length of the first sequence in the dataset.
 """
-function predict_one(model, seq::LongDNA{4})
-    s = fix_length(seq, 37)
-    X = onehot_encode(s)            # (37, 4)
-    X = reshape(X, 37, 4, 1)        # (length, channels, batch)
+function detect_seq_length(seqs::Vector{LongDNA{4}})
+    return length(seqs[1])
+end
+
+"""
+    parse_model_seq_length(modelname::String) -> Int
+
+Extract sequence length from model filename, e.g. "..._75nt..." → 75.
+"""
+function parse_model_seq_length(modelname::String)
+    m = match(r"_(\d+)nt", modelname)
+    m === nothing && error("Could not parse sequence length from model name: $modelname")
+    return parse(Int, m.captures[1])
+end
+
+"""
+    predict_one(model, seq::LongDNA{4}, L::Int) -> (pred, probs)
+
+Run inference on a single sequence of length L.
+"""
+function predict_one(model, seq::LongDNA{4}, L::Int)
+    s = fix_length(seq, L)
+    X = onehot_encode(s)            # (L, 4)
+    X = reshape(X, L, 4, 1)         # (length, channels, batch)
     probs = model(X)                # (2, 1)
     pred  = onecold(probs, 0:1)[1]  # decode to 0 or 1
     return pred, probs[:,1]
@@ -117,8 +115,6 @@ end
 # Inference CLI
 ####################################################################################################
 
-using FilePathsBase: basename, splitext, dirname
-
 args = infer_args()
 
 # Load model
@@ -137,12 +133,22 @@ rootdir    = basename(dirname(datapath))
 # Load sequences
 seqs = load_sequences(datapath)
 
+# Detect input length and model length
+input_len = detect_seq_length(seqs)
+model_len = parse_model_seq_length(modelname)
+
+println("Input sequence length = $input_len, Model expects = $model_len")
+
+if input_len != model_len
+    error("Sequence length mismatch: input=$input_len, model=$model_len. Adjust fix_length or retrain.")
+end
+
 # Predict all
 preds = Vector{Int}(undef, length(seqs))
 probs = Matrix{Float32}(undef, 2, length(seqs))
 
 for (i, seq) in enumerate(seqs)
-    pred, prob = predict_one(model, seq)
+    pred, prob = predict_one(model, seq, model_len)
     preds[i]   = pred
     probs[:,i] = prob
 end
