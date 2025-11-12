@@ -11,6 +11,13 @@
   - add verbose option on cnn training
   - add logging on cnn traing
 
+- todo:
+  - genome reference downloaded (refseq h38)
+  - generate in two tiers, random sequences => 75nt;
+    10k, 20k, 30k, 40k, 50k
+    100k, 200k, 300k, 400k, 500k
+  - use modern & degragate for ancient
+
 ==================================================
 src/cnn.jl
   line 3      TODO   load both sequences, french & neandertal, and tag for training
