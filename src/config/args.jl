@@ -147,6 +147,48 @@ end
 
 ####################################################################################################
 
+####################################################################################################
+# Args API
+####################################################################################################
+
+"""
+    roc_args() -> Dict
+
+Parse CLI arguments for ROC curve plotting.
+
+Options:
+--modern   : CSV file with modern predictions
+--ancient  : CSV file with ancient predictions
+--single   : Single CSV file with ground truth in 4th column
+--out      : Output HTML file (default: graph/roc/roc.html)
+"""
+function roc_args()
+    s = ArgParseSettings()
+
+    @add_arg_table s begin
+        "--modern"
+            help = "CSV file with modern predictions"
+            arg_type = String
+            required = false   # set true if you want to force two-file mode
+        "--ancient"
+            help = "CSV file with ancient predictions"
+            arg_type = String
+            required = false
+        "--single"
+            help = "Single CSV file with ground truth in 4th column"
+            arg_type = String
+            required = false
+        "--out"
+            help = "Output HTML file (default: graph/roc/roc.html)"
+            arg_type = String
+            default = joinpath(Paths.ROC, "roc.html")
+    end
+
+    return parse_args(s)
+end
+
+####################################################################################################
+
 function sysimage_args()
     desc = HELP *
         "Build a custom Julia sysimage for a script\n"
