@@ -18,6 +18,18 @@
     100k, 200k, 300k, 400k, 500k
   - use modern & degragate for ancient
 
+simulation plan:
+set up gargammel (cli tool to simulate ancient sequences)
+importantly
+  - gargammel was cloned & patch for python version compatibility
+  - gargammel only works on bash through conda enviroment
+  - gargammel required to install several python packages, conda, and ms (samples under neutral models - rhudson, uchicago)
+  - output writes to current directory, thus preferably run from gdata (gargammel data)
+  - downloaded a reference human genome (h38) & softlink to gdata
+  - manipulate gargammel params to create 100% bacterial contamination sample, where bacteria is in fact human sequences
+  - declare softlinked human reference genome at gdata/bact/list
+  - use gargammel params: composition = 0,0,1; mapdamage = missincorporation.txt (from gargammel Ust_Ishim)
+
 ==================================================
 src/cnn.jl
   line 3      TODO   load both sequences, french & neandertal, and tag for training
