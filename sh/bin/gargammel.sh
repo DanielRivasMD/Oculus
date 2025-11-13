@@ -24,4 +24,4 @@ cd simul || { echo "Directory 'simul' not found"; exit 1; }
 
 # --- run gargammel ---
 OUT="h38_ancient_${N}_${L}"
-gargammel --comp 1,0,0 -n "$N" -l "$L" -o "$OUT" -mapdamage ../config/missincorporation.txt .
+gargammel --comp 1,0,0 -n "$N" -l "$L" -o "$OUT" -mapdamage config/missincorporation.txt .
