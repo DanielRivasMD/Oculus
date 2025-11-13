@@ -43,7 +43,7 @@ end
 if abspath(PROGRAM_FILE) == @__FILE__
   if length(ARGS) < 2
     println(
-      "Usage: julia simulate_reads.jl genome.fasta output.fasta [read_len] [num_reads]",
+      "Usage: julia simulate_reads.jl genome.fasta output.fasta [num_reads] [read_len]",
     )
     exit(1)
   end
