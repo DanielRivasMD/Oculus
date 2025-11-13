@@ -1,5 +1,3 @@
-
-#!/usr/bin/env julia
 # Simulate Illumina-like reads from a genome FASTA
 
 using Random
@@ -13,8 +11,8 @@ and writes them out as FASTA records to `out_fasta`.
 function simulate_reads(
   genome_fasta::String,
   out_fasta::String;
-  read_len::Int = 75,
   num_reads::Int = 1000,
+  read_len::Int = 75,
 )
   # Read genome into a single string
   genome = IOBuffer()
@@ -51,8 +49,8 @@ if abspath(PROGRAM_FILE) == @__FILE__
   end
   genome_fasta = ARGS[1]
   out_fasta = ARGS[2]
-  read_len = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 75
-  num_reads = length(ARGS) >= 4 ? parse(Int, ARGS[4]) : 1000
+  num_reads = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1000
+  read_len = length(ARGS) >= 4 ? parse(Int, ARGS[4]) : 75
 
-  simulate_reads(genome_fasta, out_fasta; read_len = read_len, num_reads = num_reads)
+  simulate_reads(genome_fasta, out_fasta; num_reads = num_reads, read_len = read_len)
 end
