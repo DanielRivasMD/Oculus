@@ -1,0 +1,13 @@
+[sample]
+# Target sequence length
+seqlen = 75
+
+# Random seed for reproducibility
+seed = 42
+
+# Directory containing FASTA files
+datadir = "simul"
+
+# Paths to modern and ancient FASTA files
+modern  = "simul/h38_modern_SIZE_75nt.fasta"
+ancient = "simul/h38_ancient_SIZE_75nt.fasta"
