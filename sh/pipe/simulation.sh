@@ -21,5 +21,5 @@ do
 OUT="simul/h38_modern_${N}_${L}nt.fasta"
 
 echo "Running genomeExtract.jl for N=$N and L=$L -> $OUT"
-julia --project src/bin/genomeExtract.jl data/refseq/GCF_000001405.26_GRCh38_genomic.fna "$N" "$L" "$OUT"
+julia --project src/bin/genomeExtract.jl data/refseq/GCF_000001405.26_GRCh38_genomic.fna "$OUT" "$N" "$L"
 done
