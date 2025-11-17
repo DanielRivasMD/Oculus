@@ -3,7 +3,7 @@
 using Random
 
 """
-simulate_reads(genome_fasta::String, out_fasta::String; read_len::Int=75, num_reads::Int=1000)
+simulate_reads(genome_fasta::String, out_fasta::String; read_len::Int=76, num_reads::Int=1000)
 
 Reads a genome FASTA file, samples random substrings of length `read_len`,
 and writes them out as FASTA records to `out_fasta`.
@@ -12,7 +12,7 @@ function simulate_reads(
   genome_fasta::String,
   out_fasta::String;
   num_reads::Int = 1000,
-  read_len::Int = 75,
+  read_len::Int = 76,
 )
   # Read genome into a single string
   genome = IOBuffer()
@@ -50,7 +50,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
   genome_fasta = ARGS[1]
   out_fasta = ARGS[2]
   num_reads = length(ARGS) >= 3 ? parse(Int, ARGS[3]) : 1000
-  read_len = length(ARGS) >= 4 ? parse(Int, ARGS[4]) : 75
+  read_len = length(ARGS) >= 4 ? parse(Int, ARGS[4]) : 76
 
   simulate_reads(genome_fasta, out_fasta; num_reads = num_reads, read_len = read_len)
 end
