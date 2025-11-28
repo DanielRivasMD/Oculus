@@ -3,20 +3,13 @@
 - given that the architecture deepness is linked to the sequence length, consider using different lengths in training, or training different models
 - potentially introduce regularization penalities
 - add validation set
-- models are mediocre, test without batchnorm
-- the model length is a big concern, think about alternatives to mitigate
-
-
-- techical:
-  - add verbose option on cnn training
-  - add logging on cnn traing
+- once model works, test on denisovan & other species
 
 - todo:
   - genome reference downloaded (refseq h38)
-  - generate in two tiers, random sequences => 75nt;
-    10k, 20k, 30k, 40k, 50k
-    100k, 200k, 300k, 400k, 500k
+  - generate in two tiers, random sequences => 76nt;
   - use modern & degragate for ancient
+  - check simulated ancient dna
 
 simulation plan:
 set up gargammel (cli tool to simulate ancient sequences)
