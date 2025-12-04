@@ -2,18 +2,9 @@
 - likewise, a smaller kernel migth impact the prediction power significantly?
 - given that the architecture deepness is linked to the sequence length, consider using different lengths in training, or training different models
 - potentially introduce regularization penalities
-- add validation set
 - once model works, test on denisovan & other species
 
-- todo:
-  - genome reference downloaded (refseq h38)
-  - generate in two tiers, random sequences => 76nt;
-  - use modern & degragate for ancient
-  - check simulated ancient dna
-
 simulation plan:
-set up gargammel (cli tool to simulate ancient sequences)
-importantly
   - gargammel was cloned & patch for python version compatibility
   - gargammel only works on bash through conda enviroment
   - gargammel required to install several python packages, conda, and ms (samples under neutral models - rhudson, uchicago)
@@ -22,6 +13,12 @@ importantly
   - manipulate gargammel params to create 100% bacterial contamination sample, where bacteria is in fact human sequences
   - declare softlinked human reference genome at gdata/bact/list
   - use gargammel params: composition = 0,0,1; mapdamage = missincorporation.txt (from gargammel Ust_Ishim)
+
+TODO:
+  - clean & update code
+  - add output paths performance & inference
+  - document the project state
+
 
 ==================================================
 src/cnn.jl
