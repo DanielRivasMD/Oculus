@@ -1,4 +1,20 @@
 ####################################################################################################
+# cli args
+####################################################################################################
+
+begin
+  # Load path definitions
+  include(joinpath(PROGRAM_FILE === nothing ? "src" : "..", "config", "paths.jl"))
+  using .Paths
+  Paths.ensure_dirs()
+
+  include(joinpath(Paths.UTIL, "args.jl"))      # Args API
+end
+
+# Parse CLI arguments
+args = cnn_args()
+
+####################################################################################################
 # Imports
 ####################################################################################################
 
@@ -20,15 +36,8 @@ using FilePathsBase: basename, splitext
 ####################################################################################################
 
 begin
-  # Load path definitions
-  include(joinpath(PROGRAM_FILE === nothing ? "src" : "..", "config", "paths.jl"))
-  using .Paths
-  Paths.ensure_dirs()
-
-  # Load configuration structs
-  include(joinpath(Paths.CONFIG, "sample.jl"))    # SampleParams (data config)
-  include(joinpath(Paths.CONFIG, "params.jl"))    # CNNParams (hyperparameters)
-  include(joinpath(Paths.CONFIG, "args.jl"))      # Args API
+  include(joinpath(Paths.CONFIG, "hparams.jl"))   # CNNParams (hyperparameters)
+  include(joinpath(Paths.CONFIG, "sparams.jl"))   # SampleParams (data config)
   include(joinpath(Paths.UTIL, "architect.jl"))   # Model architecture (buildCNN)
   include(joinpath(Paths.UTIL, "load.jl"))        # Data loading and preprocessing
   include(joinpath(Paths.UTIL, "train.jl"))       # Training loop (trainCNN!)
@@ -38,16 +47,13 @@ end;
 # Experiment setup
 ####################################################################################################
 
-# Parse CLI arguments
-args = cnn_args()
-
 # Paths from CLI (empty string means "use defaults from struct")
 cnn_path = args["cnn"]
 sample_path = args["sample"]
 
 # Load hyperparameters and sample config
-hparams = load_cnnparams(cnn_path)
-sparams = load_sampleparams(sample_path)
+hparams = loadHparams(cnn_path)
+sparams = loadSparams(sample_path)
 
 @info hparams
 @info sparams
