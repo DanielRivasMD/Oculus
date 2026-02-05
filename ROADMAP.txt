@@ -15,6 +15,7 @@ simulation plan:
   - use gargammel params: composition = 0,0,1; mapdamage = missincorporation.txt (from gargammel Ust_Ishim)
 
 TODO:
+  - run deamination analysis on all simulated fasta sample pairs
   - clean & update code
   - add output paths performance & inference
   - document the project state
