@@ -21,21 +21,21 @@ Flux’s 1D `MaxPool` reduces the length as `floor(L / p)` per layer.
 pool_out_len(50, 2, 3)  # -> 6
 """
 pool_out_len(seqlen::Int, p::Int, n::Int) = begin
-    L = seqlen
-    for _ in 1:n
-        L = fld(L, p)  # floor division
-    end
-    L
+  L = seqlen
+  for _ = 1:n
+    L = fld(L, p)  # floor division
+  end
+  L
 end
 
 ####################################################################################################
 
 function maybe_bn(channels, args)
-    args.batchnorm ? BatchNorm(channels) : identity
+  args.batchnorm ? BatchNorm(channels) : identity
 end
 
 function maybe_do(p, args)
-    args.dropout ? Dropout(p) : identity
+  args.dropout ? Dropout(p) : identity
 end
 
 ####################################################################################################
@@ -88,50 +88,76 @@ model = buildCNN(hparams, sample)
 ```
 """
 function buildCNN(args::CNNParams, sample::SampleParams)
-    nblocks = length(args.layerouts)
-    @assert length(args.dropouts) == nblocks + 1
+  nblocks = length(args.layerouts)
+  @assert length(args.dropouts) == nblocks + 1
 
-    # Compute flattened size after all pooling layers
-    Lout = pool_out_len(sample.seqlen, args.maxpool, nblocks)
-    fin  = Lout * args.layerouts[end]
+  # Compute flattened size after all pooling layers
+  Lout = pool_out_len(sample.seqlen, args.maxpool, nblocks)
+  fin = Lout * args.layerouts[end]
 
-    layers = Any[]
+  layers = Any[]
 
-    # First block: input channels = 4
-    push!(layers,
-        Conv((args.kernelsize,), 4 => args.layerouts[1],
-             pad=SamePad(), init=Flux.kaiming_uniform),
-        maybe_bn(args.layerouts[1], args), args.σ,
-        Conv((args.kernelsize,), args.layerouts[1] => args.layerouts[1],
-             pad=SamePad(), init=Flux.kaiming_uniform),
-        maybe_bn(args.layerouts[1], args), args.σ,
-        MaxPool((args.maxpool,)), maybe_do(args.dropouts[1], args)
+  # First block: input channels = 4
+  push!(
+    layers,
+    Conv(
+      (args.kernelsize,),
+      4 => args.layerouts[1],
+      pad = SamePad(),
+      init = Flux.kaiming_uniform,
+    ),
+    maybe_bn(args.layerouts[1], args),
+    args.σ,
+    Conv(
+      (args.kernelsize,),
+      args.layerouts[1] => args.layerouts[1],
+      pad = SamePad(),
+      init = Flux.kaiming_uniform,
+    ),
+    maybe_bn(args.layerouts[1], args),
+    args.σ,
+    MaxPool((args.maxpool,)),
+    maybe_do(args.dropouts[1], args),
+  )
+
+  # Remaining blocks
+  for i = 2:nblocks
+    push!(
+      layers,
+      Conv(
+        (args.kernelsize,),
+        args.layerouts[i-1] => args.layerouts[i],
+        pad = SamePad(),
+        init = Flux.kaiming_uniform,
+      ),
+      maybe_bn(args.layerouts[i], args),
+      args.σ,
+      Conv(
+        (args.kernelsize,),
+        args.layerouts[i] => args.layerouts[i],
+        pad = SamePad(),
+        init = Flux.kaiming_uniform,
+      ),
+      maybe_bn(args.layerouts[i], args),
+      args.σ,
+      MaxPool((args.maxpool,)),
+      maybe_do(args.dropouts[i], args),
     )
+  end
 
-    # Remaining blocks
-    for i in 2:nblocks
-        push!(layers,
-            Conv((args.kernelsize,), args.layerouts[i-1] => args.layerouts[i],
-                 pad=SamePad(), init=Flux.kaiming_uniform),
-            maybe_bn(args.layerouts[i], args), args.σ,
-            Conv((args.kernelsize,), args.layerouts[i] => args.layerouts[i],
-                 pad=SamePad(), init=Flux.kaiming_uniform),
-            maybe_bn(args.layerouts[i], args), args.σ,
-            MaxPool((args.maxpool,)), maybe_do(args.dropouts[i], args)
-        )
-    end
+  # Dense head
+  push!(
+    layers,
+    Flux.flatten,
+    Dense(fin, args.layerouts[end], init = Flux.kaiming_uniform),
+    maybe_bn(args.layerouts[end], args),
+    args.σ,
+    maybe_do(args.dropouts[end], args),
+    Dense(args.layerouts[end], 2),
+    softmax,
+  )
 
-    # Dense head
-    push!(layers,
-        Flux.flatten,
-        Dense(fin, args.layerouts[end], init=Flux.kaiming_uniform),
-        maybe_bn(args.layerouts[end], args), args.σ,
-        maybe_do(args.dropouts[end], args),
-        Dense(args.layerouts[end], 2),
-        softmax
-    )
-
-    return Chain(layers...) |> args.device
+  return Chain(layers...) |> args.device
 end
 
 ####################################################################################################

@@ -10,9 +10,9 @@ using Zygote
 ####################################################################################################
 
 function accuracy(model, data)
-    X, Y = data
-    yhat = model(X)
-    mean(onecold(yhat) .== onecold(Y))
+  X, Y = data
+  yhat = model(X)
+  mean(onecold(yhat) .== onecold(Y))
 end
 
 ####################################################################################################
@@ -63,85 +63,92 @@ logging mean training and validation losses per epoch.
 - Losses are averaged across batches for stability.
 - The model is updated in place; the returned `model` is the same object.
 """
-function trainCNN!(model,
-                   train_loader::DataLoader,
-                   val_loader::Union{DataLoader,Nothing};
-                   hparams::CNNParams)
+function trainCNN!(
+  model,
+  train_loader::DataLoader,
+  val_loader::Union{DataLoader,Nothing};
+  hparams::CNNParams,
+)
 
-    # Optimiser setup
-    opt = Optimisers.OptimiserChain(
-        Optimisers.Descent(hparams.η),
-        Optimisers.Momentum(hparams.momentum)
-    )
-    opt_state = Optimisers.setup(opt, model)
+  # Optimiser setup
+  opt = Optimisers.OptimiserChain(
+    Optimisers.Descent(hparams.η),
+    Optimisers.Momentum(hparams.momentum),
+  )
+  opt_state = Optimisers.setup(opt, model)
 
-    # Loss function with optional L2 regularization
-    function lossfn(m, xb, yb)
-        ce = Flux.crossentropy(m(xb), yb)
-        if !isnan(hparams.λ)
-            reg = hparams.λ * Zygote.ignore() do
-                sum(p -> sum(abs2, p), Flux.params(m))
-            end
-            return ce + reg
-        else
-            return ce
-        end
+  # Loss function with optional L2 regularization
+  function lossfn(m, xb, yb)
+    ce = Flux.crossentropy(m(xb), yb)
+    if !isnan(hparams.λ)
+      reg = hparams.λ * Zygote.ignore() do
+        sum(p -> sum(abs2, p), Flux.params(m))
+      end
+      return ce + reg
+    else
+      return ce
+    end
+  end
+
+  # Metrics storage
+  train_losses = Float32[]
+  val_losses = Float32[]
+  train_accs = Float32[]
+  val_accs = Float32[]
+
+  # Epoch loop
+  for epoch = 1:hparams.epochs
+    eloss = 0.0f0
+    ecorr = 0
+    ecnt = 0
+
+    # Training loop
+    for (xb, yb) in train_loader
+      xb = hparams.device(xb)
+      yb = hparams.device(yb)
+
+      # Compute loss and gradient tree
+      loss_val, grads = Flux.withgradient(m -> lossfn(m, xb, yb), model)
+
+      # Update optimiser state and model
+      opt_state, model = Optimisers.update!(opt_state, model, grads[1])
+
+      # Metrics
+      eloss += loss_val
+      ŷ = model(xb)
+      ecorr += sum(Flux.onecold(ŷ) .== Flux.onecold(yb))
+      ecnt += size(yb, 2)
     end
 
-    # Metrics storage
-    train_losses = Float32[]
-    val_losses   = Float32[]
-    train_accs   = Float32[]
-    val_accs     = Float32[]
+    push!(train_losses, eloss / max(ecnt, 1))
+    push!(train_accs, ecorr / max(ecnt, 1))
 
-    # Epoch loop
-    for epoch in 1:hparams.epochs
-        eloss = 0.0f0; ecorr = 0; ecnt = 0
+    # Validation loop (only if provided)
+    if val_loader !== nothing
+      vloss = 0.0f0
+      vcorr = 0
+      vcnt = 0
+      for (xb, yb) in val_loader
+        xb = hparams.device(xb)
+        yb = hparams.device(yb)
 
-        # Training loop
-        for (xb, yb) in train_loader
-            xb = hparams.device(xb)
-            yb = hparams.device(yb)
-
-            # Compute loss and gradient tree
-            loss_val, grads = Flux.withgradient(m -> lossfn(m, xb, yb), model)
-
-            # Update optimiser state and model
-            opt_state, model = Optimisers.update!(opt_state, model, grads[1])
-
-            # Metrics
-            eloss += loss_val
-            ŷ = model(xb)
-            ecorr += sum(Flux.onecold(ŷ) .== Flux.onecold(yb))
-            ecnt  += size(yb, 2)
-        end
-
-        push!(train_losses, eloss / max(ecnt, 1))
-        push!(train_accs, ecorr / max(ecnt, 1))
-
-        # Validation loop (only if provided)
-        if val_loader !== nothing
-            vloss = 0.0f0; vcorr = 0; vcnt = 0
-            for (xb, yb) in val_loader
-                xb = hparams.device(xb)
-                yb = hparams.device(yb)
-
-                ŷ = model(xb)
-                vloss += Flux.crossentropy(ŷ, yb)
-                vcorr += sum(Flux.onecold(ŷ) .== Flux.onecold(yb))
-                vcnt  += size(yb, 2)
-            end
-            push!(val_losses, vloss / max(vcnt, 1))
-            push!(val_accs, vcorr / max(vcnt, 1))
-        else
-            push!(val_losses, NaN32)
-            push!(val_accs, NaN32)
-        end
-
-        @info "epoch $epoch" train_loss=train_losses[end] train_acc=train_accs[end] val_loss=val_losses[end] val_acc=val_accs[end]
+        ŷ = model(xb)
+        vloss += Flux.crossentropy(ŷ, yb)
+        vcorr += sum(Flux.onecold(ŷ) .== Flux.onecold(yb))
+        vcnt += size(yb, 2)
+      end
+      push!(val_losses, vloss / max(vcnt, 1))
+      push!(val_accs, vcorr / max(vcnt, 1))
+    else
+      push!(val_losses, NaN32)
+      push!(val_accs, NaN32)
     end
 
-    return (; train_losses, val_losses, train_accs, val_accs, model, opt_state)
+    @info "epoch $epoch" train_loss = train_losses[end] train_acc = train_accs[end] val_loss =
+      val_losses[end] val_acc = val_accs[end]
+  end
+
+  return (; train_losses, val_losses, train_accs, val_accs, model, opt_state)
 end
 
 ####################################################################################################
