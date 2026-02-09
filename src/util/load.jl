@@ -57,7 +57,7 @@ with zeros so that all sequences match the maximum length in the batch.
 The result is a 3‑dimensional tensor suitable for input into a CNN.
 
 # Arguments
-- `seqs::Vector{LongDNA{4}}`  
+- `seqs::Vector{LongDNA{4}}`
   Collection of DNA sequences to encode.
 
 # Returns
@@ -137,17 +137,17 @@ This function prepares a dataset for binary classification by:
 # Arguments
 - `params::SampleParams`  
   Configuration struct specifying:
-  - `modern` : path to modern DNA FASTA file  
-  - `ancient`: path to ancient DNA FASTA file  
-  - `seqlen` : required sequence length  
-  - `seed`   : random seed for reproducible sampling  
+  - `modern` : path to modern DNA FASTA file
+  - `ancient`: path to ancient DNA FASTA file
+  - `seqlen` : required sequence length
+  - `seed`   : random seed for reproducible sampling
 
 # Returns
-- `all_seqs::Vector{LongDNA{4}}`  
+- `all_seqs::Vector{LongDNA{4}}`
   Balanced set of DNA sequences (modern + ancient).
-- `labels::Vector{Int}`  
-  Integer labels aligned with `all_seqs`:  
-  - `0` = modern (French)  
+- `labels::Vector{Int}`
+  Integer labels aligned with `all_seqs`:
+  - `0` = modern (French)
   - `1` = ancient (Neandertal)
 
 # Notes
@@ -195,7 +195,7 @@ end
 ####################################################################################################
 
 """
-    make_dataset(sparams::SampleParams, hparams::CNNParams) 
+    make_dataset(sparams::SampleParams, hparams::HyperParams)
         -> (Vector{Tuple{Tuple{Array,Array},Tuple{Array,Array}}}, NamedTuple)
 
 Prepare one‑hot encoded datasets and train/validation splits for CNN training.
@@ -209,42 +209,42 @@ This function ties together sequence loading, encoding, and splitting:
 5. Packages each split into `(Xtrain, Ytrain), (Xval, Yval)` tuples.
 
 # Arguments
-- `sparams::SampleParams`  
+- `sparams::SampleParams`
   Provides sequence length, random seed, and FASTA file paths.
 
-- `hparams::CNNParams`  
+- `hparams::HyperParams`
   Provides hyperparameters controlling split strategy (`k` or `train_frac`).
 
 # Returns
-- `datasets::Vector`  
+- `datasets::Vector`
   A vector of folds. Each element is a tuple:
   - `(Xtrain, Ytrain)` : training data and labels
-  - `(Xval,   Yval)`   : validation data and labels  
+  - `(Xval,   Yval)`   : validation data and labels
   Shapes:  
-  - `X` = `(L, 4, Bsplit)` where `L` is sequence length, `Bsplit` is batch size  
+  - `X` = `(L, 4, Bsplit)` where `L` is sequence length, `Bsplit` is batch size
   - `Y` = `(2, Bsplit)` one‑hot labels
 
-- `meta::NamedTuple`  
-  Metadata with fields:  
-  - `B` : total number of sequences  
+- `meta::NamedTuple`
+  Metadata with fields:
+  - `B` : total number of sequences
   - `L` : sequence length after encoding
 
 # Notes
-- If `hparams.k == 0`, a single dataset split is returned using `train_frac`.  
-- If `hparams.k > 0`, `k` folds are returned for cross‑validation.  
+- If `hparams.k == 0`, a single dataset split is returned using `train_frac`.
+- If `hparams.k > 0`, `k` folds are returned for cross‑validation.
 - An assertion ensures that the number of encoded sequences matches the number of labels.
 
 # Example
 ```julia
 sparams = SampleParams(seqlen=50, seed=123)
-hparams = CNNParams(train_frac=0.8, k=0)
+hparams = HyperParams(train_frac=0.8, k=0)
 
 datasets, meta = make_dataset(sparams, hparams)
 (Xtrain, Ytrain), (Xval, Yval) = datasets[1]
 
 @info "Dataset metadata" meta
 """
-function make_dataset(sparams::SampleParams, hparams::CNNParams)
+function make_dataset(sparams::SampleParams, hparams::HyperParams)
   all_seqs, labels = load_balanced_data(sparams)
   X = onehot_batch(all_seqs)
   Y = onehotbatch(labels, 0:1)
@@ -268,7 +268,7 @@ end
 ####################################################################################################
 
 """
-    split_indices(B::Int, hparams::CNNParams, sparams::SampleParams)
+    split_indices(B::Int, hparams::HyperParams, sparams::SampleParams)
         -> Vector{NamedTuple{(:train,:val),Tuple{Vector{Int},Vector{Int}}}}
 
 Generate train/validation index splits for dataset partitioning.
@@ -288,16 +288,16 @@ k‑fold cross‑validation, controlled by `hparams.k`:
 - `B::Int`  
   Total number of samples in the dataset.
 
-- `hparams::CNNParams`  
+- `hparams::HyperParams`
   Provides split strategy:
   - `k` : number of folds (`0` = vanilla validation).  
   - `train_frac` : fraction of data used for training (only when `k=0`).
 
-- `sparams::SampleParams`  
+- `sparams::SampleParams`
   Provides `seed` for reproducible shuffling.
 
 # Returns
-- `Vector{NamedTuple}`  
+- `Vector{NamedTuple}`
   Each element is a named tuple `(train=Vector{Int}, val=Vector{Int})`
   containing indices for training and validation sets.
 
@@ -309,12 +309,12 @@ k‑fold cross‑validation, controlled by `hparams.k`:
 # Example
 ```julia
 sparams = SampleParams(seed=123)
-hparams = CNNParams(train_frac=0.8, k=0)
+hparams = HyperParams(train_frac=0.8, k=0)
 
 folds = split_indices(100, hparams, sparams)
 (train_idx, val_idx) = folds[1]
 """
-function split_indices(B::Int, hparams::CNNParams, sparams::SampleParams)
+function split_indices(B::Int, hparams::HyperParams, sparams::SampleParams)
   Random.seed!(sparams.seed)
   idx = shuffle(1:B)
 

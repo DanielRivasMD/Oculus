@@ -41,7 +41,7 @@ end
 ####################################################################################################
 
 """
-    buildCNN(args::CNNParams, sample::SampleParams) -> Chain
+    buildCNN(args::HyperParams, sample::SampleParams) -> Chain
 
 Construct a 1D convolutional neural network whose depth is determined
 by the length of `args.layerouts`.
@@ -79,15 +79,15 @@ Here `fin = pool_out_len(sample.seqlen, args.maxpool, n) * layerouts[end]`.
 # Usage
 ```julia
 # 1-block CNN
-hparams = CNNParams(layerouts=[32], dropouts=[0.2, 0.5])
+hparams = HyperParams(layerouts=[32], dropouts=[0.2, 0.5])
 model = buildCNN(hparams, sample)
 
 # 3-block CNN
-hparams = CNNParams(layerouts=[32, 64, 128], dropouts=[0.2, 0.3, 0.4, 0.5])
+hparams = HyperParams(layerouts=[32, 64, 128], dropouts=[0.2, 0.3, 0.4, 0.5])
 model = buildCNN(hparams, sample)
 ```
 """
-function buildCNN(args::CNNParams, sample::SampleParams)
+function buildCNN(args::HyperParams, sample::SampleParams)
   nblocks = length(args.layerouts)
   @assert length(args.dropouts) == nblocks + 1
 

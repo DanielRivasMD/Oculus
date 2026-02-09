@@ -18,7 +18,7 @@ end
 ####################################################################################################
 
 """
-    trainCNN!(model, train_loader, val_loader; hparams::CNNParams)
+    trainCNN!(model, train_loader, val_loader; hparams::HyperParams)
         -> NamedTuple
 
 Train a convolutional neural network (CNN) for a fixed number of epochs,
@@ -48,7 +48,7 @@ logging mean training and validation losses per epoch.
 - `val_loader::Union{DataLoader,Nothing}`  
   DataLoader for validation batches, or `nothing` to skip validation.
 
-- `hparams::CNNParams`  
+- `hparams::HyperParams`  
   Hyperparameters controlling epochs, learning rate, momentum, and device.
 
 # Returns
@@ -67,7 +67,7 @@ function trainCNN!(
   model,
   train_loader::DataLoader,
   val_loader::Union{DataLoader,Nothing};
-  hparams::CNNParams,
+  hparams::HyperParams,
 )
 
   # Optimiser setup
