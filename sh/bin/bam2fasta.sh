@@ -45,7 +45,8 @@ FASTADIR="${DATA}/fasta"
 
 mkdir -p "$FASTADIR"
 
-for sample in French Neandertal; do
+# for sample in French Neandertal; do
+for sample in simulation_ancient simulation_modern; do
   bam="$BAMDIR/$sample.bam"
 
   if [ "$MODE" = "whole" ]; then
