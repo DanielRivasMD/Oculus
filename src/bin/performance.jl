@@ -1,4 +1,20 @@
 ####################################################################################################
+# cli args
+####################################################################################################
+
+begin
+  # Load path definitions
+  include(joinpath(PROGRAM_FILE === nothing ? "src" : "..", "config", "paths.jl"))
+  using .Paths
+  Paths.ensure_dirs()
+
+  include(joinpath(Paths.UTIL, "args.jl"))      # Args API
+end
+
+# Parse CLI arguments
+args = performance_args()
+
+####################################################################################################
 # Imports
 ####################################################################################################
 
@@ -22,9 +38,8 @@ begin
   Paths.ensure_dirs()
 
   # Load configuration structs
-  include(joinpath(Paths.CONFIG, "sample.jl"))    # SampleParams (data config)
-  include(joinpath(Paths.CONFIG, "params.jl"))    # CNNParams (hyperparameters)
-  include(joinpath(Paths.CONFIG, "args.jl"))      # Args API (now includes infer_args)
+  include(joinpath(Paths.CONFIG, "hparams.jl"))    # CNNParams (hyperparameters)
+  include(joinpath(Paths.CONFIG, "sparams.jl"))    # SampleParams (data config)
 end;
 
 ####################################################################################################
@@ -159,7 +174,6 @@ end
 ####################################################################################################
 
 if !isinteractive() && PROGRAM_FILE !== nothing
-  args = perf_args()
   bs = BSON.load(args["model"])
   mode = get(args, "mode", "html") == "term" ? :term : :html
   plot_metrics(bs; mode = mode, outfile = args["out"])
