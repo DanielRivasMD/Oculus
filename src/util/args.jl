@@ -21,6 +21,46 @@ end
 
 ####################################################################################################
 
+function deamination_args()
+  desc =
+    HELP *
+    "Compare per‑position nucleotide composition between modern and ancient FASTA files\n"
+
+  s = ArgParseSettings(description = desc)
+
+  @add_arg_table s begin
+    "--modern"
+    help = "Modern FASTA file"
+    arg_type = String
+    required = true
+
+    "--ancient"
+    help = "Ancient FASTA file"
+    arg_type = String
+    required = true
+
+    "--csv"
+    help = "Output CSV file (default: out.csv)"
+    arg_type = String
+    default = "out.csv"
+
+    "--png"
+    help = "Output PNG plot file (default: out.png)"
+    arg_type = String
+    default = "out.png"
+
+    "--verbose"
+    help = "Print detailed information"
+    action = :store_true
+  end
+
+  args = parse_args(s)
+  return args
+end
+
+
+####################################################################################################
+
 function cnn_args()
   desc = HELP * "Train Oculus, CNN for ancient DNA identification\n"
   s = ArgParseSettings(description = desc)
