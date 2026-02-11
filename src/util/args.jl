@@ -93,6 +93,37 @@ end
 
 ####################################################################################################
 
+function feature_args()
+  desc = HELP * "Feature engineering for ancient vs modern FASTA sequences\n"
+
+  s = ArgParseSettings(description = desc)
+
+  @add_arg_table s begin
+    "--modern"
+    help = "Modern FASTA file"
+    arg_type = String
+    required = true
+
+    "--ancient"
+    help = "Ancient FASTA file"
+    arg_type = String
+    required = true
+
+    "--out"
+    help = "Output CSV file for engineered features"
+    arg_type = String
+    default = "features.csv"
+
+    "--heavy"
+    help = "Use heavy one-hot encoding for every position"
+    action = :store_true
+  end
+
+  return parse_args(s)
+end
+
+####################################################################################################
+
 function cnn_args()
   desc = HELP * "Train Oculus, CNN for ancient DNA identification\n"
   s = ArgParseSettings(description = desc)
