@@ -124,6 +124,28 @@ end
 
 ####################################################################################################
 
+function regression_args()
+  desc = HELP * "Run a linear regression model on engineered features\n"
+
+  s = ArgParseSettings(description = desc)
+
+  @add_arg_table s begin
+    "--in"
+    help = "Input CSV file containing engineered features"
+    arg_type = String
+    required = true
+
+    "--out"
+    help = "Optional output CSV for predictions"
+    arg_type = String
+    default = nothing
+  end
+
+  return parse_args(s)
+end
+
+####################################################################################################
+
 function cnn_args()
   desc = HELP * "Train Oculus, CNN for ancient DNA identification\n"
   s = ArgParseSettings(description = desc)
