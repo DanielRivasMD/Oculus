@@ -21,6 +21,38 @@ end
 
 ####################################################################################################
 
+function extract_args()
+  desc = HELP * "Extract Illumina‑like reads from a genome FASTA\n"
+
+  s = ArgParseSettings(description = desc)
+
+  @add_arg_table s begin
+    "--genome"
+    help = "Input genome FASTA file"
+    arg_type = String
+    required = true
+
+    "--out"
+    help = "Output FASTA file for simulated reads"
+    arg_type = String
+    default = "simulated_reads.fasta"
+
+    "--num_reads"
+    help = "Number of reads to simulate (default: 1000)"
+    arg_type = Int
+    default = 1000
+
+    "--read_len"
+    help = "Length of each simulated read (default: 76)"
+    arg_type = Int
+    default = 76
+  end
+
+  return parse_args(s)
+end
+
+####################################################################################################
+
 function deamination_args()
   desc =
     HELP *
