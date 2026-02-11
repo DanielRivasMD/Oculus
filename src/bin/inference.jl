@@ -2,7 +2,7 @@
 # TODO: pass seq len as arg
 
 ####################################################################################################
-# CLI args
+# cli args
 ####################################################################################################
 
 begin
@@ -105,13 +105,17 @@ function load_sequences(path::String)
   open(path) do io
     stream = endswith(path, ".gz") ? GzipDecompressorStream(io) : io
 
-    if endswith(path, ".fa") || endswith(path, ".fasta") ||
-       endswith(path, ".fa.gz") || endswith(path, ".fasta.gz")
+    if endswith(path, ".fa") ||
+       endswith(path, ".fasta") ||
+       endswith(path, ".fa.gz") ||
+       endswith(path, ".fasta.gz")
       reader = FASTA.Reader(stream)
       return [LongDNA{4}(sequence(record)) for record in reader]
 
-    elseif endswith(path, ".fq") || endswith(path, ".fastq") ||
-           endswith(path, ".fq.gz") || endswith(path, ".fastq.gz")
+    elseif endswith(path, ".fq") ||
+           endswith(path, ".fastq") ||
+           endswith(path, ".fq.gz") ||
+           endswith(path, ".fastq.gz")
       reader = FASTQ.Reader(stream)
       return [LongDNA{4}(sequence(record)) for record in reader]
 
@@ -150,7 +154,9 @@ if !isinteractive() && PROGRAM_FILE !== nothing
   println("Input sequence length = $input_len, Model expects = $model_len")
 
   if input_len != model_len
-    error("Sequence length mismatch: input=$input_len, model=$model_len. Adjust fix_length or retrain.")
+    error(
+      "Sequence length mismatch: input=$input_len, model=$model_len. Adjust fix_length or retrain.",
+    )
   end
 
   # Predict all
