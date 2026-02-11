@@ -7,7 +7,7 @@ begin
   using .Paths
   Paths.ensure_dirs()
 
-  include(joinpath(Paths.CONFIG, "args.jl"))   # roc_args()
+  include(joinpath(Paths.UTIL, "args.jl"))   # roc_args()
 end
 
 # Parse CLI arguments
