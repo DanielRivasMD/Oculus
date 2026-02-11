@@ -38,8 +38,8 @@ begin
   Paths.ensure_dirs()
 
   # Load configuration structs
-  include(joinpath(Paths.CONFIG, "hparams.jl"))    # CNNParams (hyperparameters)
-  include(joinpath(Paths.CONFIG, "sparams.jl"))    # SampleParams (data config)
+  include(joinpath(Paths.CONFIG, "hparams.jl"))  # CNNParams (hyperparameters)
+  include(joinpath(Paths.CONFIG, "sparams.jl"))  # SampleParams (data config)
 end;
 
 ####################################################################################################

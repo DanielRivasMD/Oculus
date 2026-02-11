@@ -36,11 +36,11 @@ using FilePathsBase: basename, splitext
 ####################################################################################################
 
 begin
-  include(joinpath(Paths.CONFIG, "hparams.jl"))   # CNNParams (hyperparameters)
-  include(joinpath(Paths.CONFIG, "sparams.jl"))   # SampleParams (data config)
-  include(joinpath(Paths.UTIL, "architect.jl"))   # Model architecture (buildCNN)
-  include(joinpath(Paths.UTIL, "load.jl"))        # Data loading and preprocessing
-  include(joinpath(Paths.UTIL, "train.jl"))       # Training loop (trainCNN!)
+  include(joinpath(Paths.CONFIG, "hparams.jl"))  # CNNParams (hyperparameters)
+  include(joinpath(Paths.CONFIG, "sparams.jl"))  # SampleParams (data config)
+  include(joinpath(Paths.UTIL, "architect.jl"))  # Model architecture (buildCNN)
+  include(joinpath(Paths.UTIL, "load.jl"))       # Data loading and preprocessing
+  include(joinpath(Paths.UTIL, "train.jl"))      # Training loop (trainCNN!)
 end;
 
 ####################################################################################################
