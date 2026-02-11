@@ -32,12 +32,6 @@ using BSON
 ####################################################################################################
 
 begin
-  # Load path definitions
-  include(joinpath(PROGRAM_FILE === nothing ? "src" : "..", "config", "paths.jl"))
-  using .Paths
-  Paths.ensure_dirs()
-
-  # Load configuration structs
   include(joinpath(Paths.CONFIG, "hparams.jl"))  # CNNParams (hyperparameters)
   include(joinpath(Paths.CONFIG, "sparams.jl"))  # SampleParams (data config)
 end;
