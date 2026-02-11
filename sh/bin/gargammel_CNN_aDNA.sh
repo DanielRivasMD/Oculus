@@ -1,0 +1,1 @@
+data/CNN_aDNA_gargammel/gargammel_CNN_aDNA.sh
