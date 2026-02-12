@@ -176,7 +176,7 @@ function decisiontree_args()
     default = nothing
 
     "--model"
-    help = "Model to run: tree | random_forest | xgboost"
+    help = "Model to run: tree | forest | xgboost"
     arg_type = String
     default = "tree"
 

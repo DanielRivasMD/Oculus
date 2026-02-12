@@ -153,7 +153,7 @@ if !isinteractive() && PROGRAM_FILE !== nothing
 
     print_tree(model)
 
-  elseif model_choice == "random_forest"
+  elseif model_choice == "forest"
     # DecisionTree.jl RandomForestClassifier expects labels starting at 1
     y_train = Int.(raw_labels[train_idx]) .+ 1
     y_test = Int.(raw_labels[test_idx]) .+ 1
@@ -243,7 +243,7 @@ if !isinteractive() && PROGRAM_FILE !== nothing
     y_test = Int.(raw_labels[test_idx]) .+ 1
 
   else
-    error("Unknown model choice: $model_choice. Use 'tree', 'random_forest', or 'xgboost'.")
+    error("Unknown model choice: $model_choice. Use 'tree', 'forest', or 'xgboost'.")
   end
 
   ################################################################################################
