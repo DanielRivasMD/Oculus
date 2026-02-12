@@ -161,7 +161,7 @@ end
 ####################################################################################################
 
 function decisiontree_args()
-  desc = "Train a Decision Tree or Random Forest classifier on engineered features (labels: 0=ancient, 1=modern)\n"
+  desc = "Train a Decision Tree, Random Forest, or XGBoost classifier on engineered features (labels: 0=ancient, 1=modern)\n"
   s = ArgParseSettings(description = desc)
 
   @add_arg_table! s begin
@@ -176,7 +176,7 @@ function decisiontree_args()
     default = nothing
 
     "--model"
-    help = "Model to run: tree | random_forest"
+    help = "Model to run: tree | random_forest | xgboost"
     arg_type = String
     default = "tree"
 
@@ -210,10 +210,37 @@ function decisiontree_args()
     help = "Fraction of samples used to build each tree (0.0-1.0)"
     arg_type = Float64
     default = 0.7
+
+    # XGBoost specific
+    "--xgb_rounds"
+    help = "Number of boosting rounds for XGBoost"
+    arg_type = Int
+    default = 100
+
+    "--xgb_eta"
+    help = "Learning rate (eta) for XGBoost"
+    arg_type = Float64
+    default = 0.1
+
+    "--xgb_max_depth"
+    help = "Maximum tree depth for XGBoost"
+    arg_type = Int
+    default = 6
+
+    "--xgb_subsample"
+    help = "Subsample ratio of the training instances for XGBoost"
+    arg_type = Float64
+    default = 0.8
+
+    "--xgb_colsample_bytree"
+    help = "Subsample ratio of columns when constructing each tree for XGBoost"
+    arg_type = Float64
+    default = 0.8
   end
 
   return parse_args(s)
 end
+
 
 
 ####################################################################################################

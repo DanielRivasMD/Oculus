@@ -1,3 +1,5 @@
+#!/usr/bin/env julia
+
 ####################################################################################################
 # cli args
 ####################################################################################################
@@ -21,6 +23,7 @@ using ArgParse
 using DataFrames
 using Random
 using DecisionTree
+using XGBoost
 using FilePathsBase: basename, splitext
 
 ####################################################################################################
@@ -56,8 +59,18 @@ if !isinteractive() && PROGRAM_FILE !== nothing
   test_frac = args["test_frac"]
   seed = args["seed"]
 
+  # Random forest specific
   n_trees = args["n_trees"]
   rf_partial = args["rf_partial_sampling"]
+
+  # XGBoost specific
+  xgb_rounds = args["xgb_rounds"]
+  xgb_eta = args["xgb_eta"]
+  xgb_max_depth = args["xgb_max_depth"]
+  xgb_subsample = args["xgb_subsample"]
+  xgb_colsample_bytree = args["xgb_colsample_bytree"]
+
+  model_choice = args["model"]
 
   Random.seed!(seed)
 
@@ -75,10 +88,6 @@ if !isinteractive() && PROGRAM_FILE !== nothing
     error("Label column must contain only 0 (ancient) or 1 (modern)")
   end
 
-  # DecisionTree.jl expects integer class ids starting at 1.
-  # Convert 0->1, 1->2 for training, and convert back when writing predictions.
-  y = Int.(raw_labels) .+ 1
-
   # Features (all columns except label)
   feature_cols = filter(c -> c != :label, names(df))
   X = Matrix(df[:, feature_cols])
@@ -90,7 +99,7 @@ if !isinteractive() && PROGRAM_FILE !== nothing
 
   # Stratified train/test split
   byclass = Dict{Int,Vector{Int}}()
-  for (i, lab) in enumerate(y)
+  for (i, lab) in enumerate(raw_labels)
     push!(get!(byclass, lab, Int[]), i)
   end
 
@@ -117,17 +126,17 @@ if !isinteractive() && PROGRAM_FILE !== nothing
   end
 
   X_train = X[train_idx, :]
-  y_train = y[train_idx]
   X_test = X[test_idx, :]
-  y_test = y[test_idx]
 
   ################################################################################################
-  # model to run: single tree or random forest
+  # Model branches
   ################################################################################################
-
-  model_choice = args["model"]
 
   if model_choice == "tree"
+    # DecisionTree.jl expects labels starting at 1
+    y_train = Int.(raw_labels[train_idx]) .+ 1
+    y_test = Int.(raw_labels[test_idx]) .+ 1
+
     println(
       "Training Decision Tree Classifier with max_depth=$max_depth min_samples_leaf=$min_samples_leaf",
     )
@@ -138,11 +147,14 @@ if !isinteractive() && PROGRAM_FILE !== nothing
     println("\nTrained tree structure:")
     print_tree(model)
 
-    # Predictions
     y_pred_train = predict(model, X_train)
     y_pred_test = predict(model, X_test)
 
   elseif model_choice == "random_forest"
+    # DecisionTree.jl RandomForestClassifier expects labels starting at 1
+    y_train = Int.(raw_labels[train_idx]) .+ 1
+    y_test = Int.(raw_labels[test_idx]) .+ 1
+
     println(
       "Training Random Forest Classifier with n_trees=$n_trees max_depth=$max_depth min_samples_leaf=$min_samples_leaf partial_sampling=$rf_partial",
     )
@@ -155,15 +167,12 @@ if !isinteractive() && PROGRAM_FILE !== nothing
 
     fit!(rf_model, X_train, y_train)
 
-    println("Random Forest trained.")
-    # Print a short summary: number of trees and sample fraction
-    println("Forest size: $(rf_model.n_trees) trees")
+    println("Random Forest trained. Forest size: $(rf_model.n_trees) trees")
 
-    # Predictions
     y_pred_train = predict(rf_model, X_train)
     y_pred_test = predict(rf_model, X_test)
 
-    # Optionally print feature importance if available
+    # Optional feature importance
     try
       if hasproperty(rf_model, :feature_importance)
         fi = rf_model.feature_importance
@@ -177,15 +186,68 @@ if !isinteractive() && PROGRAM_FILE !== nothing
       # ignore if not present
     end
 
+  elseif model_choice == "xgboost"
+    # XGBoost expects labels as 0/1 for binary:logistic
+    y_train_xgb = Float32.(raw_labels[train_idx])
+    y_test_xgb = Float32.(raw_labels[test_idx])
+
+    println(
+      "Training XGBoost classifier with rounds=$xgb_rounds eta=$xgb_eta max_depth=$xgb_max_depth subsample=$xgb_subsample colsample_bytree=$xgb_colsample_bytree",
+    )
+
+    dtrain = DMatrix(X_train, label = y_train_xgb)
+    dtest = DMatrix(X_test, label = y_test_xgb)
+
+    params = Dict(
+      "objective" => "binary:logistic",
+      "eta" => xgb_eta,
+      "max_depth" => xgb_max_depth,
+      "subsample" => xgb_subsample,
+      "colsample_bytree" => xgb_colsample_bytree,
+      "eval_metric" => "logloss",
+      "seed" => seed,
+    )
+
+    watchlist = [(dtrain, "train"), (dtest, "eval")]
+    bst = xgboost(dtrain, num_round = xgb_rounds, params = params, evals = watchlist)
+
+    # Predict probabilities and threshold at 0.5
+    prob_train = predict(bst, dtrain)
+    prob_test = predict(bst, dtest)
+
+    y_pred_train = Int.(prob_train .>= 0.5) .+ 1   # convert to 1/2 for metrics
+    y_pred_test = Int.(prob_test .>= 0.5) .+ 1
+
+    # Optionally print top features by importance
+    try
+      fmap = xgboost_feature_score(bst)
+      if !isempty(fmap)
+        println("\nXGBoost feature importance (top 10):")
+        # fmap is Dict{String,Float64} with "f0","f1",...
+        pairs_sorted = sort(collect(fmap), by = x -> x[2], rev = true)
+        for (i, (fname, score)) in enumerate(pairs_sorted[1:min(10, length(pairs_sorted))])
+          # fname like "f0" -> index
+          idx = parse(Int, replace(fname, "f" => "")) + 1
+          println("  $(feature_cols[idx]) => $(round(score, digits=6))")
+        end
+      end
+    catch
+      # ignore if feature importance not available
+    end
+
+    # For metrics we need y_train/y_test in 1/2 form
+    y_train = Int.(raw_labels[train_idx]) .+ 1
+    y_test = Int.(raw_labels[test_idx]) .+ 1
+
   else
-    error("Unknown model choice: $model_choice. Use 'tree' or 'random_forest'.")
+    error("Unknown model choice: $model_choice. Use 'tree', 'random_forest', or 'xgboost'.")
   end
 
   ################################################################################################
   # Metrics
   ################################################################################################
 
-  nclasses = length(unique(y))
+  nclasses = length(unique(y_test))
   cm_train = confusion_matrix(y_train, y_pred_train, nclasses)
   cm_test = confusion_matrix(y_test, y_pred_test, nclasses)
 
@@ -203,10 +265,11 @@ if !isinteractive() && PROGRAM_FILE !== nothing
   println(cm_test)
 
   ################################################################################################
-  # Write predictions
+  # Write predictions if requested (convert back to 0/1 labels)
   ################################################################################################
 
   if outfile !== nothing
+    # y_pred_test currently in 1/2 form; convert back to 0/1
     pred_labels = Int.(y_pred_test) .- 1
     true_labels = Int.(y_test) .- 1
     outdf = DataFrame(index = test_idx, true = true_labels, pred = pred_labels)
