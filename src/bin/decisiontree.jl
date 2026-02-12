@@ -56,6 +56,9 @@ if !isinteractive() && PROGRAM_FILE !== nothing
   test_frac = args["test_frac"]
   seed = args["seed"]
 
+  n_trees = args["n_trees"]
+  rf_partial = args["rf_partial_sampling"]
+
   Random.seed!(seed)
 
   println("Loading dataframe from $infile")
@@ -118,20 +121,70 @@ if !isinteractive() && PROGRAM_FILE !== nothing
   X_test = X[test_idx, :]
   y_test = y[test_idx]
 
-  println(
-    "Training Decision Tree Classifier with max_depth=$max_depth min_samples_leaf=$min_samples_leaf",
-  )
-  model = DecisionTreeClassifier(max_depth = max_depth, min_samples_leaf = min_samples_leaf)
-  fit!(model, X_train, y_train)
+  ################################################################################################
+  # model to run: single tree or random forest
+  ################################################################################################
 
-  println("\nTrained tree structure:")
-  print_tree(model)
+  model_choice = args["model"]
 
-  # Predictions
-  y_pred_train = predict(model, X_train)
-  y_pred_test = predict(model, X_test)
+  if model_choice == "tree"
+    println(
+      "Training Decision Tree Classifier with max_depth=$max_depth min_samples_leaf=$min_samples_leaf",
+    )
+    model =
+      DecisionTreeClassifier(max_depth = max_depth, min_samples_leaf = min_samples_leaf)
+    fit!(model, X_train, y_train)
 
-  # Metrics: confusion matrix and accuracy only
+    println("\nTrained tree structure:")
+    print_tree(model)
+
+    # Predictions
+    y_pred_train = predict(model, X_train)
+    y_pred_test = predict(model, X_test)
+
+  elseif model_choice == "random_forest"
+    println(
+      "Training Random Forest Classifier with n_trees=$n_trees max_depth=$max_depth min_samples_leaf=$min_samples_leaf partial_sampling=$rf_partial",
+    )
+    rf_model = RandomForestClassifier(
+      n_trees = n_trees,
+      max_depth = max_depth,
+      min_samples_leaf = min_samples_leaf,
+      partial_sampling = rf_partial,
+    )
+
+    fit!(rf_model, X_train, y_train)
+
+    println("Random Forest trained.")
+    # Print a short summary: number of trees and sample fraction
+    println("Forest size: $(rf_model.n_trees) trees")
+
+    # Predictions
+    y_pred_train = predict(rf_model, X_train)
+    y_pred_test = predict(rf_model, X_test)
+
+    # Optionally print feature importance if available
+    try
+      if hasproperty(rf_model, :feature_importance)
+        fi = rf_model.feature_importance
+        println("\nFeature importance (top 10):")
+        idxs = sortperm(fi, rev = true)[1:min(10, length(fi))]
+        for i in idxs
+          println("  $(feature_cols[i]) => $(round(fi[i], digits=6))")
+        end
+      end
+    catch
+      # ignore if not present
+    end
+
+  else
+    error("Unknown model choice: $model_choice. Use 'tree' or 'random_forest'.")
+  end
+
+  ################################################################################################
+  # Metrics
+  ################################################################################################
+
   nclasses = length(unique(y))
   cm_train = confusion_matrix(y_train, y_pred_train, nclasses)
   cm_test = confusion_matrix(y_test, y_pred_test, nclasses)
@@ -149,7 +202,10 @@ if !isinteractive() && PROGRAM_FILE !== nothing
   println("Confusion matrix:")
   println(cm_test)
 
-  # Write predictions if requested (convert back to 0/1 labels)
+  ################################################################################################
+  # Write predictions
+  ################################################################################################
+
   if outfile !== nothing
     pred_labels = Int.(y_pred_test) .- 1
     true_labels = Int.(y_test) .- 1

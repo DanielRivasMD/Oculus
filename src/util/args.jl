@@ -161,7 +161,7 @@ end
 ####################################################################################################
 
 function decisiontree_args()
-  desc = "Train a Decision Tree classifier on engineered features (labels: ancient, modern)\n"
+  desc = "Train a Decision Tree or Random Forest classifier on engineered features (labels: 0=ancient, 1=modern)\n"
   s = ArgParseSettings(description = desc)
 
   @add_arg_table! s begin
@@ -175,8 +175,13 @@ function decisiontree_args()
     arg_type = String
     default = nothing
 
+    "--model"
+    help = "Model to run: tree | random_forest"
+    arg_type = String
+    default = "tree"
+
     "--max_depth"
-    help = "Maximum depth of the decision tree"
+    help = "Maximum depth of the decision tree (0 = unlimited)"
     arg_type = Int
     default = 6
 
@@ -193,11 +198,23 @@ function decisiontree_args()
     "--seed"
     help = "Random seed for reproducibility"
     arg_type = Int
-    default = 1
+    default = 42
+
+    # Random Forest specific
+    "--n_trees"
+    help = "Number of trees for Random Forest (only used if --model random_forest)"
+    arg_type = Int
+    default = 100
+
+    "--rf_partial_sampling"
+    help = "Fraction of samples used to build each tree (0.0-1.0)"
+    arg_type = Float64
+    default = 0.7
   end
 
   return parse_args(s)
 end
+
 
 ####################################################################################################
 
