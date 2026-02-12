@@ -7,7 +7,7 @@ begin
   using .Paths
   Paths.ensure_dirs()
 
-  include(joinpath(Paths.UTIL, "args.jl"))   # roc_args()
+  include(joinpath(Paths.UTIL, "args.jl"))
 end
 
 # Parse CLI arguments
@@ -30,8 +30,8 @@ using FilePathsBase: joinpath
 """
     load_probs_labels(path; has_truth=false, label=nothing)
 
-Load p1 probabilities from a CSV file.  
-If `has_truth=true`, read ground truth from column 4.  
+Load p1 probabilities from a CSV file.
+If `has_truth=true`, read ground truth from column 4.
 If `label` is provided, assign that label to all rows.
 """
 function load_probs_labels(

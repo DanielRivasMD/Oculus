@@ -10,7 +10,7 @@ begin
   using .Paths
   Paths.ensure_dirs()
 
-  include(joinpath(Paths.UTIL, "args.jl"))   # infer_args()
+  include(joinpath(Paths.UTIL, "args.jl"))
 end
 
 # Parse CLI arguments
