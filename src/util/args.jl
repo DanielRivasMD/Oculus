@@ -160,6 +160,47 @@ end
 
 ####################################################################################################
 
+function decisiontree_args()
+  desc = "Train a Decision Tree classifier on engineered features (labels: ancient, modern)\n"
+  s = ArgParseSettings(description = desc)
+
+  @add_arg_table! s begin
+    "--in"
+    help = "Input CSV file with engineered features and a 'label' column"
+    arg_type = String
+    required = true
+
+    "--out"
+    help = "Output CSV file for test predictions (optional)"
+    arg_type = String
+    default = nothing
+
+    "--max_depth"
+    help = "Maximum depth of the decision tree"
+    arg_type = Int
+    default = 6
+
+    "--min_samples_leaf"
+    help = "Minimum samples per leaf"
+    arg_type = Int
+    default = 5
+
+    "--test_frac"
+    help = "Fraction of data to hold out for testing (0.0 - 0.5)"
+    arg_type = Float64
+    default = 0.2
+
+    "--seed"
+    help = "Random seed for reproducibility"
+    arg_type = Int
+    default = 1
+  end
+
+  return parse_args(s)
+end
+
+####################################################################################################
+
 function cnn_args()
   desc = HELP * "Train Oculus, CNN for ancient DNA identification\n"
   s = ArgParseSettings(description = desc)
