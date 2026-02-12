@@ -151,6 +151,8 @@ if !isinteractive() && PROGRAM_FILE !== nothing
     y_pred_train = DecisionTree.predict(model, X_train)
     y_pred_test = DecisionTree.predict(model, X_test)
 
+    print_tree(model)
+
   elseif model_choice == "random_forest"
     # DecisionTree.jl RandomForestClassifier expects labels starting at 1
     y_train = Int.(raw_labels[train_idx]) .+ 1
