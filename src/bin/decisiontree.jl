@@ -23,6 +23,7 @@ using ArgParse
 using DataFrames
 using Random
 using DecisionTree
+using LinearAlgebra
 using XGBoost
 using FilePathsBase: basename, splitext
 
@@ -77,10 +78,10 @@ if !isinteractive() && PROGRAM_FILE !== nothing
   println("Loading dataframe from $infile")
   df = readdf(infile; sep = ',')
 
-  # Validate label column
-  if !(:label in names(df))
-    error("Input CSV must contain a 'label' column with values 0 (ancient) or 1 (modern)")
-  end
+  # # Validate label column
+  # if !(:label in names(df))
+  #   error("Input CSV must contain a 'label' column with values 0 (ancient) or 1 (modern)")
+  # end
 
   # Ensure labels are 0 or 1
   raw_labels = df.label
@@ -147,8 +148,8 @@ if !isinteractive() && PROGRAM_FILE !== nothing
     println("\nTrained tree structure:")
     print_tree(model)
 
-    y_pred_train = predict(model, X_train)
-    y_pred_test = predict(model, X_test)
+    y_pred_train = DecisionTree.predict(model, X_train)
+    y_pred_test = DecisionTree.predict(model, X_test)
 
   elseif model_choice == "random_forest"
     # DecisionTree.jl RandomForestClassifier expects labels starting at 1
@@ -169,8 +170,8 @@ if !isinteractive() && PROGRAM_FILE !== nothing
 
     println("Random Forest trained. Forest size: $(rf_model.n_trees) trees")
 
-    y_pred_train = predict(rf_model, X_train)
-    y_pred_test = predict(rf_model, X_test)
+    y_pred_train = DecisionTree.predict(rf_model, X_train)
+    y_pred_test = DecisionTree.predict(rf_model, X_test)
 
     # Optional feature importance
     try
@@ -212,8 +213,8 @@ if !isinteractive() && PROGRAM_FILE !== nothing
     bst = xgboost(dtrain, num_round = xgb_rounds, params = params, evals = watchlist)
 
     # Predict probabilities and threshold at 0.5
-    prob_train = predict(bst, dtrain)
-    prob_test = predict(bst, dtest)
+    prob_train = XGBoost.predict(bst, dtrain)
+    prob_test = XGBoost.predict(bst, dtest)
 
     y_pred_train = Int.(prob_train .>= 0.5) .+ 1   # convert to 1/2 for metrics
     y_pred_test = Int.(prob_test .>= 0.5) .+ 1
@@ -272,7 +273,7 @@ if !isinteractive() && PROGRAM_FILE !== nothing
     # y_pred_test currently in 1/2 form; convert back to 0/1
     pred_labels = Int.(y_pred_test) .- 1
     true_labels = Int.(y_test) .- 1
-    outdf = DataFrame(index = test_idx, true = true_labels, pred = pred_labels)
+    outdf = DataFrame(index = test_idx, truth = true_labels, pred = pred_labels)
     writedf(outfile, outdf; sep = ',')
     println("Predictions written to $outfile")
   end
