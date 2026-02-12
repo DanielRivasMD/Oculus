@@ -125,20 +125,34 @@ end
 ####################################################################################################
 
 function regression_args()
-  desc = HELP * "Run a linear regression model on engineered features\n"
-
+  desc = "Run linear, ridge, lasso, or elastic net regression on engineered features\n"
   s = ArgParseSettings(description = desc)
 
-  @add_arg_table s begin
+  @add_arg_table! s begin
     "--in"
-    help = "Input CSV file containing engineered features"
+    help = "Input CSV file"
     arg_type = String
     required = true
 
     "--out"
-    help = "Optional output CSV for predictions"
+    help = "Output CSV file"
     arg_type = String
     default = nothing
+
+    "--reg"
+    help = "Regularization method: none | ridge | lasso | elasticnet"
+    arg_type = String
+    default = "none"
+
+    "--alpha"
+    help = "Elastic Net mixing parameter (0<alpha<1). Ignored unless --reg elasticnet"
+    arg_type = Float64
+    default = 0.5
+
+    "--nfolds"
+    help = "Number of folds for cross-validation (only used if --reg != none)"
+    arg_type = Int
+    default = 10
   end
 
   return parse_args(s)

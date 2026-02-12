@@ -18,7 +18,6 @@ args = regression_args()
 ####################################################################################################
 
 using DataFrames
-using DelimitedFiles
 using FilePathsBase: basename, splitext
 using GLM
 using GLMNet
@@ -40,71 +39,98 @@ if !isinteractive() && PROGRAM_FILE !== nothing
 
   infile = args["in"]
   outfile = args["out"]
+  reg_method = args["reg"]
+  nfolds = args["nfolds"]
+  alpha = args["alpha"]
 
   println("Loading dataframe from $infile")
   df = readdf(infile; sep = ',')
 
-  ################################################################################################
-  # FEATURE / LABEL EXTRACTION
-  ################################################################################################
-
+  # Extract features and label
   label_col = "label"
   feature_cols = setdiff(names(df), [label_col])
 
-  ################################################################################################
-  # LINEAR REGRESSION (GLM)
-  ################################################################################################
+  X = Matrix(df[:, feature_cols])
+  y = Vector(df[:, label_col])
+
+  ##################################################################################################
+  # Linear Regression (no regularization)
+  ##################################################################################################
 
   println("\nFitting linear regression model...")
 
-  feature_syms = Symbol.(feature_cols)
-  f = Term(:label) ~ sum(Term.(feature_syms))
+  f = Term(:label) ~ sum(Term.(Symbol.(feature_cols)))
   model_lm = lm(f, df)
 
   println("\nLinear model coefficients:")
   println(DataFrame(term = coefnames(model_lm), coef = GLM.coef(model_lm)))
 
-  ################################################################################################
-  # LASSO REGRESSION WITH CROSS‑VALIDATION (GLMNet)
-  ################################################################################################
+  ##################################################################################################
+  # Regularized Models (Ridge, LASSO, Elastic Net)
+  ##################################################################################################
 
-  println("\nRunning LASSO cross‑validation (GLMNet)...")
+  if reg_method == "none"
+    println("\nNo regularization selected. Skipping GLMNet models.")
 
-  X = Matrix(df[:, feature_cols])
-  y = Vector(df[:, label_col])
+    if outfile !== nothing
+      preds_lm = GLM.predict(model_lm)
+      outdf = DataFrame(pred_lm = preds_lm)
+      writedf(outfile, outdf; sep = ',')
+      println("Predictions written to $outfile")
+    end
 
-  # α = 1 → Lasso
-  fit_cv = glmnetcv(X, y; alpha = 1.0, nfolds = 10)
+    return
+  end
 
-  # Best λ index
+  println("\nRunning regularized model: $reg_method")
+
+  # Determine alpha
+  if reg_method == "lasso"
+    alpha = 1.0
+  elseif reg_method == "ridge"
+    alpha = 0.0
+  elseif reg_method == "elasticnet"
+    # alpha is passed by user
+    if alpha <= 0 || alpha >= 1
+      error("Elastic Net requires 0 < --alpha < 1")
+    end
+  else
+    error("Unknown regularization method: $reg_method")
+  end
+
+  println("Using alpha = $alpha")
+  println("Cross-validation folds = $nfolds")
+
+  fit_cv = glmnetcv(X, y; alpha = alpha, nfolds = nfolds)
+
   idx = argmin(fit_cv.meanloss)
   best_lambda = fit_cv.lambda[idx]
 
-  println("Best λ from cross‑validation: $best_lambda")
+  println("Best λ from cross-validation: $best_lambda")
 
-  # Extract coefficients directly from the GLMNet path
+  # Extract coefficients from GLMNet path
   intercept = fit_cv.path.a0[idx]
   betas = fit_cv.path.betas[:, idx]
 
-  lasso_terms = vcat(:Intercept, Symbol.(feature_cols))
-  lasso_coefs = vcat(intercept, betas)
+  reg_terms = vcat(:Intercept, Symbol.(feature_cols))
+  reg_coefs = vcat(intercept, betas)
 
-  println("\nLASSO coefficients:")
-  println(DataFrame(term = lasso_terms, coef = lasso_coefs))
+  println("\nRegularized model coefficients:")
+  println(DataFrame(term = reg_terms, coef = reg_coefs))
 
-  ################################################################################################
-  # OPTIONAL PREDICTIONS
-  ################################################################################################
+  ##################################################################################################
+  # Predictions
+  ##################################################################################################
 
   if outfile !== nothing
     preds_lm = GLM.predict(model_lm)
-    preds_lasso = intercept .+ X * betas
+    preds_reg = intercept .+ X * betas
 
-    outdf = DataFrame(pred_lm = preds_lm, pred_lasso = preds_lasso)
+    outdf = DataFrame(pred_lm = preds_lm, pred_reg = preds_reg)
 
     writedf(outfile, outdf; sep = ',')
     println("Predictions written to $outfile")
   end
 end
 
-####################################################################################################
+##################################################################################################
