@@ -122,7 +122,8 @@ if !isinteractive() && PROGRAM_FILE !== nothing
   println("Cross-validation folds = $nfolds")
 
   # GLMNet expects y as numeric 0/1 for binomial
-  fit_cv = glmnetcv(X, y; family = "binomial", alpha = alpha, nfolds = nfolds)
+  y_int = Int.(y)   # ensure 0/1 integers
+  fit_cv = glmnetcv(X, y_int; alpha = alpha, nfolds = nfolds)
 
   idx = argmin(fit_cv.meanloss)
   best_lambda = fit_cv.lambda[idx]
