@@ -2,7 +2,7 @@
 
 julia_version = "1.12.4"
 manifest_format = "2.0"
-project_hash = "1f72e2090139c5cf8f8def337cab78cec2317d00"
+project_hash = "64ddfe024f7e7e130b84bf7dfd023e55b2b972a2"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "f7304359109c768cf32dc5fa2d371565bb63b68a"
@@ -640,6 +640,12 @@ deps = ["Distributions", "LinearAlgebra", "Printf", "Reexport", "SparseArrays", 
 git-tree-sha1 = "3bcb30438ee1655e3b9c42d97544de7addc9c589"
 uuid = "38e38edf-8417-5370-95a0-9cbb8c7f171a"
 version = "1.9.3"
+
+[[deps.GLMNet]]
+deps = ["DataFrames", "Distributed", "Distributions", "Printf", "Random", "SparseArrays", "StatsBase", "glmnet_jll"]
+git-tree-sha1 = "b873c384d3490304c18224b1d5554cdebaafb60b"
+uuid = "8d5ece8b-de18-5317-b113-243142960cc6"
+version = "0.7.4"
 
 [[deps.GPUArrays]]
 deps = ["Adapt", "GPUArraysCore", "KernelAbstractions", "LLVM", "LinearAlgebra", "Printf", "Random", "Reexport", "ScopedValues", "Serialization", "SparseArrays", "Statistics"]
@@ -2105,6 +2111,12 @@ deps = ["Artifacts", "JLLWrappers", "Libdl"]
 git-tree-sha1 = "b6a34e0e0960190ac2a4363a1bd003504772d631"
 uuid = "214eeab7-80f7-51ab-84ad-2988db7cef09"
 version = "0.61.1+0"
+
+[[deps.glmnet_jll]]
+deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "31adae3b983b579a1fbd7cfd43a4bc0d224c2f5a"
+uuid = "78c6b45d-5eaf-5d68-bcfb-a5a2cb06c27f"
+version = "2.0.13+0"
 
 [[deps.libaom_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
