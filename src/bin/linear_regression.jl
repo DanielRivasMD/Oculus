@@ -19,9 +19,10 @@ args = regression_args()
 
 using DataFrames
 using DelimitedFiles
-using GLM
-using StatsModels
 using FilePathsBase: basename, splitext
+using GLM
+using GLMNet
+using StatsModels
 
 ####################################################################################################
 # Load configuration
@@ -37,33 +38,71 @@ end;
 
 if !isinteractive() && PROGRAM_FILE !== nothing
 
-  infile  = args["in"]
+  infile = args["in"]
   outfile = args["out"]
 
   println("Loading dataframe from $infile")
-  df = readdf(infile; sep=',')
-  rename!(df, Symbol.(names(df)))
+  df = readdf(infile; sep = ',')
 
-  # # Ensure label exists
-  # @assert :label in names(df) "DataFrame must contain a :label column"
+  ################################################################################################
+  # FEATURE / LABEL EXTRACTION
+  ################################################################################################
 
-  # Separate features and label
-  feature_cols = setdiff(names(df), [string(:label)])
+  label_col = "label"
+  feature_cols = setdiff(names(df), [label_col])
 
-  # Build formula: label ~ x1 + x2 + ...
-  f = Term(:label) ~ sum(Term.(Symbol.(feature_cols)))
+  ################################################################################################
+  # LINEAR REGRESSION (GLM)
+  ################################################################################################
 
-  println("Fitting linear regression model...")
-  model = lm(f, df)
+  println("\nFitting linear regression model...")
 
-  println("\nModel coefficients:")
-  println(coef(model))
+  feature_syms = Symbol.(feature_cols)
+  f = Term(:label) ~ sum(Term.(feature_syms))
+  model_lm = lm(f, df)
 
-  # Optionally write predictions
+  println("\nLinear model coefficients:")
+  println(DataFrame(term = coefnames(model_lm), coef = GLM.coef(model_lm)))
+
+  ################################################################################################
+  # LASSO REGRESSION WITH CROSS‑VALIDATION (GLMNet)
+  ################################################################################################
+
+  println("\nRunning LASSO cross‑validation (GLMNet)...")
+
+  X = Matrix(df[:, feature_cols])
+  y = Vector(df[:, label_col])
+
+  # α = 1 → Lasso
+  fit_cv = glmnetcv(X, y; alpha = 1.0, nfolds = 10)
+
+  # Best λ index
+  idx = argmin(fit_cv.meanloss)
+  best_lambda = fit_cv.lambda[idx]
+
+  println("Best λ from cross‑validation: $best_lambda")
+
+  # Extract coefficients directly from the GLMNet path
+  intercept = fit_cv.path.a0[idx]
+  betas = fit_cv.path.betas[:, idx]
+
+  lasso_terms = vcat(:Intercept, Symbol.(feature_cols))
+  lasso_coefs = vcat(intercept, betas)
+
+  println("\nLASSO coefficients:")
+  println(DataFrame(term = lasso_terms, coef = lasso_coefs))
+
+  ################################################################################################
+  # OPTIONAL PREDICTIONS
+  ################################################################################################
+
   if outfile !== nothing
-    preds = predict(model)
-    outdf = DataFrame(pred = preds)
-    writedf(outfile, outdf; sep=',')
+    preds_lm = GLM.predict(model_lm)
+    preds_lasso = intercept .+ X * betas
+
+    outdf = DataFrame(pred_lm = preds_lm, pred_lasso = preds_lasso)
+
+    writedf(outfile, outdf; sep = ',')
     println("Predictions written to $outfile")
   end
 end
