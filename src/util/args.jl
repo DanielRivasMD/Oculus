@@ -125,7 +125,7 @@ end
 ####################################################################################################
 
 function regression_args()
-  desc = "Run linear, ridge, lasso, or elastic net regression on engineered features\n"
+  desc = HELP * "Run linear, ridge, lasso, or elastic net regression on engineered features\n"
   s = ArgParseSettings(description = desc)
 
   @add_arg_table! s begin
@@ -161,7 +161,7 @@ end
 ####################################################################################################
 
 function decisiontree_args()
-  desc = "Train a Decision Tree, Random Forest, or XGBoost classifier on engineered features (labels: 0=ancient, 1=modern)\n"
+  desc = HELP * "Train a Decision Tree, Random Forest, or XGBoost classifier on engineered features (labels: 0=ancient, 1=modern)\n"
   s = ArgParseSettings(description = desc)
 
   @add_arg_table! s begin
