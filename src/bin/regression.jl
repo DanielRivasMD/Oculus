@@ -23,6 +23,7 @@ using GLM
 using GLMNet
 using LinearAlgebra
 using StatsModels
+using Random
 
 ####################################################################################################
 # Load configuration
@@ -43,6 +44,7 @@ if !isinteractive() && PROGRAM_FILE !== nothing
   reg_method = args["reg"]
   nfolds = args["nfolds"]
   alpha = args["alpha"]
+  split_frac = args["split"]
 
   println("Loading dataframe from $infile")
   df = readdf(infile; sep = ',')
@@ -54,10 +56,6 @@ if !isinteractive() && PROGRAM_FILE !== nothing
   X = Matrix(df[:, feature_cols])
   y = Vector(df[:, label_col])
 
-  ##################################################################################################
-  # Classification: Logistic baseline + Regularized (ridge/lasso/elasticnet)
-  ##################################################################################################
-
   # Validate label values are 0/1
   if !(all(x -> x in (0, 1), y))
     error(
@@ -65,32 +63,59 @@ if !isinteractive() && PROGRAM_FILE !== nothing
     )
   end
 
-  ##################################################################################################
+  ####################################################################################################
+  # Train/Test Split (if requested)
+  ####################################################################################################
+
+  if split_frac > 0
+    println("Performing stratified split with test fraction = $split_frac")
+
+    test_idx = perClassSplits(y, split_frac)
+    train_idx = setdiff(collect(1:length(y)), test_idx)
+
+    X_train = X[train_idx, :]
+    y_train = y[train_idx]
+
+    X_test = X[test_idx, :]
+    y_test = y[test_idx]
+
+  else
+    println("No split requested. Training and predicting on full dataset.")
+
+    train_idx = collect(1:length(y))
+    test_idx = train_idx
+
+    X_train = X
+    y_train = y
+
+    X_test = X
+    y_test = y
+  end
+
+  ####################################################################################################
   # Logistic baseline (GLM)
-  ##################################################################################################
+  ####################################################################################################
 
   println("\nFitting logistic regression (binomial, logit link) baseline...")
 
+  df_train = df[train_idx, :]
   f = Term(:label) ~ sum(Term.(Symbol.(feature_cols)))
-  model_glm = glm(f, df, Binomial(), LogitLink())
+  model_glm = glm(f, df_train, Binomial(), LogitLink())
 
   # GLM predicted probabilities
-  probs_glm = GLM.predict(model_glm)
+  probs_glm = GLM.predict(model_glm, df[test_idx, :])
   preds_glm_class = Int.(probs_glm .>= 0.5)
 
-  ##################################################################################################
-  # Regularized Models (Ridge, LASSO, Elastic Net) using GLMNet (binomial)
-  ##################################################################################################
+  ####################################################################################################
+  # Regularized Models (Ridge, LASSO, Elastic Net) using GLMNet
+  ####################################################################################################
 
   if reg_method == "none"
     println("\nNo regularization selected. Using GLM baseline only.")
 
     if outfile !== nothing
-      outdf = DataFrame(
-        sample = collect(1:length(y)),
-        truth = Int.(y),
-        prediction = preds_glm_class,
-      )
+      outdf =
+        DataFrame(sample = test_idx, truth = Int.(y_test), prediction = preds_glm_class)
       writedf(outfile, outdf; sep = ',')
       println("Predictions written to $outfile")
     end
@@ -117,8 +142,8 @@ if !isinteractive() && PROGRAM_FILE !== nothing
   println("Cross-validation folds = $nfolds")
 
   # GLMNet logistic regression (binomial inferred automatically)
-  y_int = Int.(y)
-  fit_cv = glmnetcv(X, y_int; alpha = alpha, nfolds = nfolds)
+  y_train_int = Int.(y_train)
+  fit_cv = glmnetcv(X_train, y_train_int; alpha = alpha, nfolds = nfolds)
 
   idx = argmin(fit_cv.meanloss)
   best_lambda = fit_cv.lambda[idx]
@@ -129,19 +154,19 @@ if !isinteractive() && PROGRAM_FILE !== nothing
   intercept = fit_cv.path.a0[idx]
   betas = fit_cv.path.betas[:, idx]
 
-  # Logistic probabilities
-  linpred = intercept .+ X * betas
+  # Logistic probabilities on test set
+  linpred = intercept .+ X_test * betas
   probs_reg = 1 ./ (1 .+ exp.(-linpred))
   preds_reg_class = Int.(probs_reg .>= 0.5)
 
-  ##################################################################################################
+  ####################################################################################################
   # Predictions output (standardized format)
-  ##################################################################################################
+  ####################################################################################################
 
   if outfile !== nothing
     preds = preds_reg_class  # regularized model output
 
-    outdf = DataFrame(sample = collect(1:length(y_int)), truth = y_int, prediction = preds)
+    outdf = DataFrame(sample = test_idx, truth = Int.(y_test), prediction = preds)
 
     writedf(outfile, outdf; sep = ',')
     println("Predictions written to $outfile")
