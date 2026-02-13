@@ -99,6 +99,10 @@ function feature_args()
   s = ArgParseSettings(description = desc)
 
   @add_arg_table s begin
+    "--config"
+    help = "load configuration from TOML"
+    arg_type = String
+
     "--modern"
     help = "Modern FASTA file"
     arg_type = String
@@ -114,8 +118,8 @@ function feature_args()
     arg_type = String
     default = "features.csv"
 
-    "--heavy"
-    help = "Use heavy one-hot encoding for every position"
+    "--onehot"
+    help = "Use one-hot encoding for every position"
     action = :store_true
   end
 
@@ -249,9 +253,6 @@ function decisiontree_args()
 
   return parse_args(s)
 end
-
-
-
 
 ####################################################################################################
 
