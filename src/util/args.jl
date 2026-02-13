@@ -9,6 +9,12 @@ const HELP =
 
 ####################################################################################################
 
+macro vinfo(args, msg)
+  return :($args["verbose"] ? @info($msg) : nothing)
+end
+
+####################################################################################################
+
 "Convert struct fields to a Dict with Symbol keys"
 function struct_to_dict(x)
   Dict(name => getfield(x, name) for name in propertynames(x))
@@ -100,7 +106,7 @@ function feature_args()
 
   @add_arg_table s begin
     "--config"
-    help = "load configuration from TOML"
+    help = "Load configuration from TOML"
     arg_type = String
 
     "--modern"
@@ -120,6 +126,10 @@ function feature_args()
 
     "--onehot"
     help = "Use one-hot encoding for every position"
+    action = :store_true
+
+    "--verbose", "-v"
+    help = "Enable verbose logging"
     action = :store_true
   end
 
