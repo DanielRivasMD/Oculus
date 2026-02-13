@@ -125,7 +125,8 @@ end
 ####################################################################################################
 
 function regression_args()
-  desc = HELP * "Run linear, ridge, lasso, or elastic net regression on engineered features\n"
+  desc =
+    HELP * "Run logistic, ridge, lasso, or elastic net regression on engineered features\n"
   s = ArgParseSettings(description = desc)
 
   @add_arg_table! s begin
@@ -153,6 +154,11 @@ function regression_args()
     help = "Number of folds for cross-validation (only used if --reg != none)"
     arg_type = Int
     default = 10
+
+    "--split"
+    help = "Fraction of data to use as test set (0.0 = no split)"
+    arg_type = Float64
+    default = 0.0
   end
 
   return parse_args(s)
@@ -161,7 +167,9 @@ end
 ####################################################################################################
 
 function decisiontree_args()
-  desc = HELP * "Train a Decision Tree, Random Forest, or XGBoost classifier on engineered features (labels: 0=ancient, 1=modern)\n"
+  desc =
+    HELP *
+    "Train a Decision Tree, Random Forest, or XGBoost classifier on engineered features (labels: 0=ancient, 1=modern)\n"
   s = ArgParseSettings(description = desc)
 
   @add_arg_table! s begin
