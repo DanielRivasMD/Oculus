@@ -27,12 +27,19 @@ using BioSequences
 ####################################################################################################
 
 begin
+  include(joinpath(Paths.CONFIG, "feparams.jl"))
   include(joinpath(Paths.UTIL, "ioDataFrame.jl"))
 end;
 
 ####################################################################################################
 # FASTA loader
 ####################################################################################################
+
+feature_config = args["config"]
+feature_params = loadFeatureParams(feature_config, args)
+
+@info feature_params
+@info args
 
 function load_fasta(path::String)
   seqs = String[]
@@ -55,11 +62,10 @@ function load_fasta(path::String)
 end
 
 ####################################################################################################
-# Feature extraction (light mode)
+# Feature extraction
 ####################################################################################################
 
-"Compute C→T at 5' and G→A at 3' for windows 5,10,15; plus GC content."
-function light_features(seq::String)
+function minimal_features(seq::String)
   L = length(seq)
   seq_up = uppercase(seq)
 
@@ -68,7 +74,8 @@ function light_features(seq::String)
     window = seq_up[1:min(k, L)]
     c = count(==('C'), window)
     t = count(==('T'), window)
-    c == 0 ? 0.0 : t / (c + t)
+    frac = c == 0 ? 0.0 : t / (c + t)
+    return round(frac; digits = 2)
   end
 
   # 3' G→A
@@ -76,11 +83,13 @@ function light_features(seq::String)
     window = seq_up[max(1, L - k + 1):L]
     g = count(==('G'), window)
     a = count(==('A'), window)
-    g == 0 ? 0.0 : a / (g + a)
+    frac = g == 0 ? 0.0 : a / (g + a)
+    return round(frac; digits = 2)
   end
 
   # GC content
-  gc = (count(c -> c == 'G' || c == 'C', seq_up)) / L
+  gc_raw = count(c -> c == 'G' || c == 'C', seq_up) / L
+  gc = round(gc_raw; digits = 2)
 
   return (
     ct5p_5 = ct5p(5),
@@ -94,11 +103,11 @@ function light_features(seq::String)
 end
 
 ####################################################################################################
-# Feature extraction (heavy mode)
+# Feature extraction
 ####################################################################################################
 
 "One-hot encode every position: a1,a2,... t1,t2,... g1,... c1,..."
-function heavy_features(seq::String)
+function onehot_features(seq::String)
   seq_up = uppercase(seq)
   L = length(seq_up)
 
@@ -119,14 +128,14 @@ end
 # Build DataFrame for a set of sequences
 ####################################################################################################
 
-function build_df(seqs::Vector{String}, label::Int; heavy::Bool)
+function build_df(seqs::Vector{String}, label::Int; onehot::Bool)
   rows = Vector{Dict}()
 
   for seq in seqs
-    if heavy
-      feats = heavy_features(seq)
+    if onehot
+      feats = onehot_features(seq)
     else
-      feats = Dict(pairs(light_features(seq)))
+      feats = Dict(pairs(minimal_features(seq)))
     end
 
     feats[:label] = label
@@ -150,24 +159,19 @@ end
 
 if !isinteractive() && PROGRAM_FILE !== nothing
 
-  modern_path = args["modern"]
-  ancient_path = args["ancient"]
-  outpath = args["out"]
-  heavy = args["heavy"]
-
-  modern_seqs = load_fasta(modern_path)
-  ancient_seqs = load_fasta(ancient_path)
+  modern_seqs = load_fasta(feature_params.modern)
+  ancient_seqs = load_fasta(feature_params.ancient)
 
   println("Loaded $(length(modern_seqs)) modern sequences")
   println("Loaded $(length(ancient_seqs)) ancient sequences")
 
-  df_mod = build_df(modern_seqs, 1; heavy = heavy)
-  df_anc = build_df(ancient_seqs, 0; heavy = heavy)
+  df_mod = build_df(modern_seqs, 1; onehot = feature_params.onehot)
+  df_anc = build_df(ancient_seqs, 0; onehot = feature_params.onehot)
 
   df = vcat(df_mod, df_anc)
 
-  writedf(outpath, df; sep = ',')
-  println("Feature matrix written to $outpath")
+  writedf(feature_params.out, df; sep = ',')
+  println("Feature matrix written to $feature_params.out")
 end
 
 ####################################################################################################
