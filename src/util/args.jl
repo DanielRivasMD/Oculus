@@ -169,17 +169,17 @@ end
 function decisiontree_args()
   desc =
     HELP *
-    "Train a Decision Tree, Random Forest, or XGBoost classifier on engineered features (labels: 0=ancient, 1=modern)\n"
+    "Train Decision Tree, Random Forest, or XGBoost classifier on engineered features\n"
   s = ArgParseSettings(description = desc)
 
   @add_arg_table! s begin
     "--in"
-    help = "Input CSV file with engineered features and a 'label' column"
+    help = "Input CSV file with features + label"
     arg_type = String
     required = true
 
     "--out"
-    help = "Output CSV file for test predictions (optional)"
+    help = "Output CSV file (sample, truth, prediction)"
     arg_type = String
     default = nothing
 
@@ -188,8 +188,19 @@ function decisiontree_args()
     arg_type = String
     default = "tree"
 
+    "--split"
+    help = "Fraction of data to use as test set (0.0 = no split)"
+    arg_type = Float64
+    default = 0.2
+
+    "--seed"
+    help = "Random seed"
+    arg_type = Int
+    default = 1
+
+    # Decision Tree / Forest shared
     "--max_depth"
-    help = "Maximum depth of the decision tree (0 = unlimited)"
+    help = "Maximum tree depth"
     arg_type = Int
     default = 6
 
@@ -198,56 +209,47 @@ function decisiontree_args()
     arg_type = Int
     default = 5
 
-    "--test_frac"
-    help = "Fraction of data to hold out for testing (0.0 - 0.5)"
-    arg_type = Float64
-    default = 0.2
-
-    "--seed"
-    help = "Random seed for reproducibility"
-    arg_type = Int
-    default = 42
-
     # Random Forest specific
     "--n_trees"
-    help = "Number of trees for Random Forest (only used if --model random_forest)"
+    help = "Number of trees for Random Forest"
     arg_type = Int
     default = 100
 
     "--rf_partial_sampling"
-    help = "Fraction of samples used to build each tree (0.0-1.0)"
+    help = "Fraction of samples used per tree (0.0–1.0)"
     arg_type = Float64
     default = 0.7
 
     # XGBoost specific
     "--xgb_rounds"
-    help = "Number of boosting rounds for XGBoost"
+    help = "Number of boosting rounds"
     arg_type = Int
-    default = 100
+    default = 200
 
     "--xgb_eta"
-    help = "Learning rate (eta) for XGBoost"
+    help = "Learning rate"
     arg_type = Float64
     default = 0.1
 
     "--xgb_max_depth"
-    help = "Maximum tree depth for XGBoost"
+    help = "Maximum depth of XGBoost trees"
     arg_type = Int
     default = 6
 
     "--xgb_subsample"
-    help = "Subsample ratio of the training instances for XGBoost"
+    help = "Subsample ratio for XGBoost"
     arg_type = Float64
     default = 0.8
 
     "--xgb_colsample_bytree"
-    help = "Subsample ratio of columns when constructing each tree for XGBoost"
+    help = "Column subsample ratio for XGBoost"
     arg_type = Float64
     default = 0.8
   end
 
   return parse_args(s)
 end
+
 
 
 
