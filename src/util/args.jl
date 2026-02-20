@@ -15,12 +15,10 @@ end
 
 ####################################################################################################
 
-"Convert struct fields to a Dict with Symbol keys"
 function struct_to_dict(x)
   Dict(name => getfield(x, name) for name in propertynames(x))
 end
 
-"Convert Dict with String keys (from TOML) into Dict with Symbol keys"
 function symbolise_keys(d::Dict)
   Dict(Symbol(k) => v for (k, v) in d)
 end
