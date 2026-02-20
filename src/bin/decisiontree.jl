@@ -29,9 +29,9 @@ using FilePathsBase: basename, splitext
 # Load configuration
 ####################################################################################################
 
-begin
-  include(joinpath(Paths.UTIL, "ioDataFrame.jl"))
-end;
+include(joinpath(Paths.UTIL, "params.jl"))
+include(joinpath(Paths.CONFIG, "dtparams.jl"))
+include(joinpath(Paths.UTIL, "ioDataFrame.jl"))
 
 ####################################################################################################
 # Main execution
