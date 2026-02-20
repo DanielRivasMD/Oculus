@@ -26,13 +26,10 @@ using BioSequences
 # Load configuration
 ####################################################################################################
 
-begin
-  include(joinpath(Paths.CONFIG, "feparams.jl"))
-  include(joinpath(Paths.UTIL, "ioDataFrame.jl"))
-end;
+include(joinpath(Paths.UTIL, "params.jl"))
+include(joinpath(Paths.CONFIG, "feparams.jl"))
+include(joinpath(Paths.UTIL, "ioDataFrame.jl"))
 
-####################################################################################################
-# FASTA loader
 ####################################################################################################
 
 feature_config = args["config"]
