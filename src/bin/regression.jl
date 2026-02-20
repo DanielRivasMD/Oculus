@@ -31,6 +31,7 @@ using Random
 
 include(joinpath(Paths.UTIL, "params.jl"))
 include(joinpath(Paths.CONFIG, "rparams.jl"))
+include(joinpath(Paths.UTIL, "cross_validation.jl"))
 include(joinpath(Paths.UTIL, "ioDataFrame.jl"))
 
 ####################################################################################################
@@ -64,7 +65,7 @@ if !isinteractive() && PROGRAM_FILE !== nothing
   end
 
   ####################################################################################################
-  # Train/Test Split (if requested)
+  # Train/Test Split
   ####################################################################################################
 
   if split_frac > 0
