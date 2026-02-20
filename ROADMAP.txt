@@ -1,25 +1,8 @@
-- if the ancient dna motifs are observed at the end of the sequences, then cutting them short would render them modern?
-- likewise, a smaller kernel migth impact the prediction power significantly?
-- given that the architecture deepness is linked to the sequence length, consider using different lengths in training, or training different models
-- potentially introduce regularization penalities
 - once model works, test on denisovan & other species
 
-simulation plan:
-  - gargammel was cloned & patch for python version compatibility
-  - gargammel only works on bash through conda enviroment
-  - gargammel required to install several python packages, conda, and ms (samples under neutral models - rhudson, uchicago)
-  - output writes to current directory, thus preferably run from gdata (gargammel data)
-  - downloaded a reference human genome (h38) & softlink to gdata
-  - manipulate gargammel params to create 100% bacterial contamination sample, where bacteria is in fact human sequences
-  - declare softlinked human reference genome at gdata/bact/list
-  - use gargammel params: composition = 0,0,1; mapdamage = missincorporation.txt (from gargammel Ust_Ishim)
-
-TODO:
-  - run deamination analysis on all simulated fasta sample pairs
-  - clean & update code
-  - add output paths performance & inference
-  - document the project state
-
+imported performance metrics
+create outputs to measure model performance with ease
+looking into decision trees models
 
 ==================================================
 src/cnn.jl
