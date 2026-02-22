@@ -444,6 +444,7 @@ julia> performance(χ)
 See also: [`performance`](@ref), [`accuracy`](@ref), [`balancedAccuracy`](@ref), [`fScore`](@ref), [`sensitivity`](@ref), [`specificity`](@ref), [`PPV`](@ref), [`NPV`](@ref), [`FPR`](@ref), [`FNR`](@ref), [`FDR`](@ref), [`FOR`](@ref), [`MCC`](@ref).
 """
 function performance(ɒ::M) where M <: Matrix{N} where N <: Number
+  @info ɒ
   if size(ɒ) == (2, 2)
     return Dict(
       "Sensitivity" => sensitivity(ɒ),
@@ -465,6 +466,28 @@ function performance(ɒ::M) where M <: Matrix{N} where N <: Number
 end
 
 ####################################################################################################
+####################################################################################################
+
+"transform freqtable => dataframe"
+function convertFqDf(fq; colnames = ["Value", "Frecuency"])
+  return DataFrames.DataFrame([names(fq)[1] fq.array], colnames)
+end
+
+
+"transform freqtable => dataframe template"
+function convertFqDf(fq, templ; colnames = ["Value", "Frecuency"])
+
+  fq = convertFqDf(fq)
+
+  Ω = DataFrames.DataFrame([templ zeros(Int64, length(templ))], colnames)
+
+  for ι ∈ axes(fq, 1)
+    Ω[findall(fq[ι, 1] .== Ω[:, 1]), 2] .= fq[ι, 2]
+  end
+
+  return Ω
+end
+
 ####################################################################################################
 
 "adjust & concatenate frecuency tables"
