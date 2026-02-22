@@ -170,7 +170,7 @@ function regression_args()
     "--split"
     help = "Fraction of data to use as test set (0.0 = no split)"
     arg_type = Float64
-    default = 0.0
+    default = 0.6
   end
 
   return parse_args(s)
