@@ -33,6 +33,7 @@ include(joinpath(Paths.UTIL, "params.jl"))
 include(joinpath(Paths.CONFIG, "rparams.jl"))
 include(joinpath(Paths.UTIL, "cross_validation.jl"))
 include(joinpath(Paths.UTIL, "ioDataFrame.jl"))
+include(joinpath(Paths.UTIL, "performance.jl"))
 
 ####################################################################################################
 # Main execution
@@ -117,6 +118,10 @@ if !isinteractive() && PROGRAM_FILE !== nothing
     if outfile !== nothing
       outdf =
         DataFrame(sample = test_idx, truth = Int.(y_test), prediction = preds_glm_class)
+
+      pf = performance(outdf.prediction .+ 1, outdf.truth .+ 1)
+      println(pf)
+
       writedf(outfile, outdf; sep = ',')
       println("Predictions written to $outfile")
     end
@@ -168,6 +173,29 @@ if !isinteractive() && PROGRAM_FILE !== nothing
     preds = preds_reg_class  # regularized model output
 
     outdf = DataFrame(sample = test_idx, truth = Int.(y_test), prediction = preds)
+
+    # TODO: finish debuging performance metrics
+    pf = performance(outdf.prediction, outdf.truth)
+    println(pf)
+
+    truth = outdf.truth
+    preds = outdf.prediction
+
+    # Convert 0/1 → 1/2 if needed
+    truth2 = truth .+ 1
+    preds2 = preds .+ 1
+
+    # Build confusion matrix
+    χ = zeros(Int, 2, 2)
+    for (t, p) in zip(truth2, preds2)
+      χ[t, p] += 1
+    end
+
+    # Compute metrics
+    metrics = performance(χ)
+
+    println(χ)
+    println(metrics)
 
     writedf(outfile, outdf; sep = ',')
     println("Predictions written to $outfile")
