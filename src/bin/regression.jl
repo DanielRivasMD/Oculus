@@ -186,15 +186,15 @@ if !isinteractive() && PROGRAM_FILE !== nothing
     preds2 = preds .+ 1
 
     # Build confusion matrix
-    χ = zeros(Int, 2, 2)
+    x = zeros(Int, 2, 2)
     for (t, p) in zip(truth2, preds2)
-      χ[t, p] += 1
+      x[t, p] += 1
     end
 
     # Compute metrics
-    metrics = performance(χ)
+    metrics = performance(x)
 
-    println(χ)
+    println(x)
     println(metrics)
 
     writedf(outfile, outdf; sep = ',')
