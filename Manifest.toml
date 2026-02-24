@@ -117,7 +117,7 @@ version = "1.1.0"
 
 [[deps.Avicenna]]
 deps = ["ArgParse", "Dates", "Markdown", "SHA", "Serialization", "UUIDs", "Weave"]
-git-tree-sha1 = "c637a48ceb7b1f9c675291896d19324c8ad4157d"
+git-tree-sha1 = "b3b390def6546164dfe0b6b8d3fe66c3c00ab01a"
 repo-rev = "main"
 repo-url = "/home/drivas/Factorem/Avicenna"
 uuid = "94ad6e5d-203d-4d53-856b-400d6f23acee"
