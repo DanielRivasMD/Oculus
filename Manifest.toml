@@ -2,7 +2,7 @@
 
 julia_version = "1.12.5"
 manifest_format = "2.0"
-project_hash = "3e950cb1a1a140dc94af3954cdf8735568e6eb6a"
+project_hash = "7197481c92a095dab09e4d58ed9ac111ec391e47"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "f7304359109c768cf32dc5fa2d371565bb63b68a"
@@ -114,6 +114,14 @@ deps = ["PrecompileTools", "SIMD", "TranscodingStreams"]
 git-tree-sha1 = "a8f503e8e1a5f583fbef15a8440c8c7e32185df2"
 uuid = "67c07d97-cdcb-5c2c-af73-a7f9c32a568b"
 version = "1.1.0"
+
+[[deps.Avicenna]]
+deps = ["ArgParse", "Dates", "Markdown", "SHA", "Serialization", "Weave"]
+git-tree-sha1 = "01ad1a6141fb07ecbf186fe4a44d111f31ee2eb7"
+repo-rev = "main"
+repo-url = "/home/drivas/Factorem/Avicenna"
+uuid = "94ad6e5d-203d-4d53-856b-400d6f23acee"
+version = "0.1.0"
 
 [[deps.BFloat16s]]
 deps = ["LinearAlgebra", "Printf", "Random"]
