@@ -4,6 +4,21 @@ imported performance metrics
 create outputs to measure model performance with ease
 looking into decision trees models
 
+Oculus (analysis repo)
+│
+├── Process module
+│     ↑ pure functions
+│
+├── FeatureWorkflow module
+│     ├── uses Process
+│     └── uses Avicenna.Workflow
+│
+├── CLI module
+│     └── uses FeatureWorkflow + Avicenna.Workflow
+│
+└── REPL module
+      └── uses FeatureWorkflow + Avicenna.Workflow
+
 ==================================================
 src/cnn.jl
   line 3      TODO   load both sequences, french & neandertal, and tag for training
