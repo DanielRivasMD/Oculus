@@ -1,0 +1,113 @@
+####################################################################################################
+
+module Process
+
+####################################################################################################
+
+using DataFrames
+
+####################################################################################################
+
+function load_fasta(path::String)
+  seqs = String[]
+  buf = IOBuffer()
+  open(path) do f
+    for line in eachline(f)
+      if startswith(line, '>')
+        if position(buf) > 0
+          push!(seqs, String(take!(buf)))
+        end
+      else
+        write(buf, strip(line))
+      end
+    end
+    if position(buf) > 0
+      push!(seqs, String(take!(buf)))
+    end
+  end
+  return seqs
+end
+
+function minimal_features(seq::String)
+  L = length(seq)
+  seq_up = uppercase(seq)
+
+  # 5' C→T
+  function ct5p(k)
+    window = seq_up[1:min(k, L)]
+    c = count(==('C'), window)
+    t = count(==('T'), window)
+    frac = c == 0 ? 0.0 : t / (c + t)
+    return round(frac; digits = 2)
+  end
+
+  # 3' G→A
+  function ga3p(k)
+    window = seq_up[max(1, L - k + 1):L]
+    g = count(==('G'), window)
+    a = count(==('A'), window)
+    frac = g == 0 ? 0.0 : a / (g + a)
+    return round(frac; digits = 2)
+  end
+
+  # GC content
+  gc_raw = count(c -> c == 'G' || c == 'C', seq_up) / L
+  gc = round(gc_raw; digits = 2)
+
+  return (
+    ct5p_5 = ct5p(5),
+    ct5p_10 = ct5p(10),
+    ct5p_15 = ct5p(15),
+    ga3p_5 = ga3p(5),
+    ga3p_10 = ga3p(10),
+    ga3p_15 = ga3p(15),
+    gc_content = gc,
+  )
+end
+
+function onehot_features(seq::String)
+  seq_up = uppercase(seq)
+  L = length(seq_up)
+
+  bases = ['A', 'T', 'G', 'C']
+  feats = Dict{Symbol,Int}()
+
+  for (i, b) in enumerate(seq_up)
+    for base in bases
+      key = Symbol(lowercase(base), i)   # e.g. "a1", "t7"
+      feats[key] = (b == base ? 1 : 0)
+    end
+  end
+
+  return feats
+end
+
+function build_df(seqs::Vector{String}, label::Int; onehot::Bool)
+  rows = Vector{Dict}()
+
+  for seq in seqs
+    if onehot
+      feats = onehot_features(seq)
+    else
+      feats = Dict(pairs(minimal_features(seq)))
+    end
+
+    feats[:label] = label
+    push!(rows, feats)
+  end
+
+  df = DataFrame(rows)
+
+  # Ensure label is last
+  newcols = filter(!=(string(:label)), names(df))
+  push!(newcols, string(:label))
+  df = df[:, newcols]
+
+  return df
+end
+
+####################################################################################################
+
+end
+
+####################################################################################################
