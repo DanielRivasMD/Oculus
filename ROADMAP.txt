@@ -20,6 +20,13 @@ Oculus (analysis repo)
       └── uses FeatureWorkflow + Avicenna.Workflow
 
 ==================================================
-src/cnn.jl
-  line 3      TODO   load both sequences, french & neandertal, and tag for training
+sh/bin/trimfasta.sh
+  line 5      BUG    trimming for modern keeps on the identified read lenght, not the cummulative after padding
+src/bin/inference.jl
+  line 1      TODO   fixed output naming
+  line 2      TODO   pass seq len as arg
+src/bin/regression.jl
+  line 177    TODO   finish debuging performance metrics
+src/config/args.jl
+  line 3      DOC    kept for source code reference purpose, otherwise deprecated
 ==================================================
