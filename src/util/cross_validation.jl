@@ -1,7 +1,7 @@
 ####################################################################################################
 
 "Define function to split data (source: Huda Nassar)"
-function perClassSplits(vec, percent)
+function per_class_splits(vec, percent)
   uniq_class = unique(vec)
   keep_index = []
   for class in uniq_class

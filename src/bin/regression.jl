@@ -72,7 +72,7 @@ if !isinteractive() && PROGRAM_FILE !== nothing
   if split_frac > 0
     println("Performing stratified split with test fraction = $split_frac")
 
-    test_idx = perClassSplits(y, split_frac)
+    test_idx = per_class_splits(y, split_frac)
     train_idx = setdiff(collect(1:length(y)), test_idx)
 
     X_train = X[train_idx, :]
