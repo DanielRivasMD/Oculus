@@ -5,33 +5,33 @@ root:
     - data
     - src
 
-src:
-  children:
-    - inter
-    - util
-    - wflow
-  inter:
+  src:
     children:
-      - cli
-      - doc
-      - repl
+      - inter
+      - util
+      - flow
+    inter:
+      children:
+        - cli
+        - doc
+        - repl
 
-data:
-  children:
-    - orig
-    - cache
-    - graph
-  orig:
+  data:
     children:
-      - bam
-      - fasta
-      - refseq
-      - gargammel
-  cache:
-    children:
-      - inference
-      - model
-  graph:
-    children:
-      - html
-      - png
+      - orig
+      - cache
+      - graph
+    orig:
+      children:
+        - bam
+        - fasta
+        - refseq
+        - gargammel
+    cache:
+      children:
+        - inference
+        - model
+    graph:
+      children:
+        - html
+        - png
