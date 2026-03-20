@@ -1,0 +1,37 @@
+root:
+  children:
+    - bin
+    - config
+    - data
+    - src
+
+src:
+  children:
+    - inter
+    - util
+    - wflow
+  inter:
+    children:
+      - cli
+      - doc
+      - repl
+
+data:
+  children:
+    - orig
+    - cache
+    - graph
+  orig:
+    children:
+      - bam
+      - fasta
+      - refseq
+      - gargammel
+  cache:
+    children:
+      - inference
+      - model
+  graph:
+    children:
+      - html
+      - png
