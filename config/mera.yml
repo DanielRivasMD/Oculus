@@ -29,6 +29,7 @@ root:
         - gargammel
     cache:
       children:
+        - fasta
         - inference
         - model
     graph:
