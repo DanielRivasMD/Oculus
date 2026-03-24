@@ -1,7 +1,7 @@
 module DAREPL
 
 using Avicenna.Flow: Cache, run
-using ..DAFlow: deamination_workflow
+using ..DAFlow: deamination_flow
 using ..DACore: fname, compare_fasta_files, plot_composition
 
 export run_deamination, compare_fasta_files, plot_composition
@@ -35,7 +35,7 @@ function run_deamination(
     "ancient_name" => fname(ancient),
   )
   cache = Cache("cache/deamination", !no_cache)
-  return run(deamination_workflow, config, cache = cache)
+  return run(deamination_flow, config, cache = cache)
 end
 
 end
