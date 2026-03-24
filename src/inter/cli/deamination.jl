@@ -2,7 +2,7 @@ module DACLI
 
 using ArgParse
 using Avicenna.Flow: Cache, run
-using ..DAFlow: deamination_workflow
+using ..DAFlow: deamination_flow
 using ..DACore: fname
 
 export run_deamination
@@ -47,7 +47,7 @@ function run_deamination(args)
   )
 
   cache = Cache("cache/deamination", !parsed["no-cache"])
-  result = run(deamination_workflow, config, cache = cache)
+  result = run(deamination_flow, config, cache = cache)
 
   println("Deamination analysis complete.")
   println("CSV: ", config["csv"])
