@@ -147,18 +147,11 @@ end
 
 ####################################################################################################
 
-"""
-    writedf(path::String, df::DataFrame; sep::Char=',')
-
-Write a DataFrame to a CSV file.
-"""
-function writedf(path::String, df::DataFrame; sep::Char = ',')
-  open(path, "w") do io
-    println(io, join(names(df), sep))
-    for row in eachrow(df)
-      println(io, join(row, sep))
-    end
-  end
+"write dataframe"
+function writedf(path, df::DataFrame; sep = ',')
+  header = permutedims(names(df))  # 1×N matrix of strings
+  data = Matrix(df)
+  writedlm(path, vcat(header, data), sep)
 end
 
 ####################################################################################################
