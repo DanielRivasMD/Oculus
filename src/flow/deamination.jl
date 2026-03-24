@@ -8,23 +8,15 @@ export deamination_flow
 const deamination_flow = Config(
   "deamination_analysis",
   [
-    Stage(
-      "load_modern",
-      (config, _) -> DACore.load_fasta(config["modern"]),
-      "1.0",
-    ),
-    Stage(
-      "load_ancient",
-      (config, _) -> DACore.load_fasta(config["ancient"]),
-      "1.0",
-    ),
+    Stage("load_modern", (config, _) -> DACore.load_fasta(config["modern"]), "1.0"),
+    Stage("load_ancient", (config, _) -> DACore.load_fasta(config["ancient"]), "1.0"),
     Stage(
       "compute_composition",
-      (config, prev) -> (
-        comp_modern = DACore.position_composition(prev["load_modern"]),
-        comp_ancient = DACore.position_composition(prev["load_ancient"]),
-        (comp_modern, comp_ancient),
-      ),
+      (config, prev) -> begin
+        comp_modern = DACore.position_composition(prev["load_modern"])
+        comp_ancient = DACore.position_composition(prev["load_ancient"])
+        return (comp_modern, comp_ancient)
+      end,
       "1.0",
     ),
     Stage(
@@ -40,8 +32,7 @@ const deamination_flow = Config(
     ),
     Stage(
       "plot",
-      (config, prev) ->
-        DACore.plot_composition(config["csv"]; outfile = config["png"]),
+      (config, prev) -> DACore.plot_composition(config["csv"]; outfile = config["png"]),
       "1.0",
     ),
   ],
