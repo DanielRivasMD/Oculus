@@ -69,35 +69,42 @@ function position_composition(seqs::Vector{String})::Vector{Dict{Char,Float64}}
   return comps
 end
 
-# """
-#     write_csv(outpath::String, modern_name::String, ancient_name::String,
-#               comp1::Vector{Dict{Char,Float64}}, comp2::Vector{Dict{Char,Float64}})
+function write_csv(
+  outpath::String,
+  modern_name::String,
+  ancient_name::String,
+  comp1::Vector{Dict{Char,Float64}},
+  comp2::Vector{Dict{Char,Float64}},
+)
+  L = length(comp1)
+  data = Matrix{Float64}(undef, L, 9)
+  for i = 1:L
+    data[i, 1] = i
+    data[i, 2] = comp1[i]['A']
+    data[i, 3] = comp1[i]['T']
+    data[i, 4] = comp1[i]['G']
+    data[i, 5] = comp1[i]['C']
+    data[i, 6] = comp2[i]['A']
+    data[i, 7] = comp2[i]['T']
+    data[i, 8] = comp2[i]['G']
+    data[i, 9] = comp2[i]['C']
+  end
 
-# Write the per‑position composition to a CSV file.
-# """
-# function write_csv(
-#   outpath::String,
-#   modern_name::String,
-#   ancient_name::String,
-#   comp1::Vector{Dict{Char,Float64}},
-#   comp2::Vector{Dict{Char,Float64}},
-# )
-#   open(outpath, "w") do io
-#     println(
-#       io,
-#       "position,${modern_name}_A,${modern_name}_T,${modern_name}_G,${modern_name}_C," *
-#       "${ancient_name}_A,${ancient_name}_T,${ancient_name}_G,${ancient_name}_C",
-#     )
-#     L = length(comp1)
-#     for i = 1:L
-#       println(
-#         io,
-#         "$i,${comp1[i]['A']},${comp1[i]['T']},${comp1[i]['G']},${comp1[i]['C']}," *
-#         "${comp2[i]['A']},${comp2[i]['T']},${comp2[i]['G']},${comp2[i]['C']}",
-#       )
-#     end
-#   end
-# end
+  # Create a 1×9 row matrix for the header
+  header = hcat(
+    "position",
+    modern_name * "_A",
+    modern_name * "_T",
+    modern_name * "_G",
+    modern_name * "_C",
+    ancient_name * "_A",
+    ancient_name * "_T",
+    ancient_name * "_G",
+    ancient_name * "_C",
+  )
+
+  writedlm(outpath, vcat(header, data), ',')
+end
 
 """
     plot_composition(csvfile::String; outfile::Union{Nothing,String}=nothing)
@@ -107,7 +114,7 @@ Generate a line plot of per‑position base composition from the CSV file.
 function plot_composition(csvfile::String; outfile::Union{Nothing,String} = nothing)
   raw = readdlm(csvfile, ',', String)
   data = raw[2:end, :]
-  positions = parse.(Int, data[:, 1])
+  positions = parse.(Float64, data[:, 1])
 
   modern_label = "Modern"
   ancient_label = "Ancient"
