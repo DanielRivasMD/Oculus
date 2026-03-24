@@ -12,6 +12,11 @@ total=$(grep -c '^>' "$MODERN")
 echo "Total sequences: $total"
 
 sizes=()
+
+for ((size = 400; size <= 3600 && size <= total; size += 400)); do
+    sizes+=($size)
+done
+
 for ((size = 4000; size <= total; size += 4000)); do
   sizes+=($size)
 done
