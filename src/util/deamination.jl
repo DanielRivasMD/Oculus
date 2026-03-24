@@ -121,6 +121,7 @@ function plot_composition(csvfile::String; outfile::Union{Nothing,String} = noth
   colors = Dict("A" => "green", "T" => "red", "G" => "orange", "C" => "blue")
 
   plt = plot(
+    ylim = (15, 35),
     size = (1000, 600),
     xlabel = "Position",
     ylabel = "Percentage (%)",
