@@ -27,16 +27,41 @@ function run_performance(args)
 
   println("Performance metrics for $(parsed["in"]):")
   metrics = result.stage_outputs["compute_metrics"]
-  for (k, v) in metrics
-    if k == "ConfusionMatrix"
-      println("Confusion Matrix:")
-      for row in eachrow(v)
-        println("  ", join(row, "  "))
-      end
-    else
-      println("  $k: $v")
+
+  # Define the order for numeric metrics
+  metric_order = [
+    "Accuracy",
+    "Sensitivity",
+    "Specificity",
+    "Precision",
+    "F1Score",
+    "BalancedAccuracy",
+    "MCC",
+    "FPR",
+    "FNR",
+    "FDR",
+    "FOR",
+    "NPV",
+  ]
+
+  # Print numeric metrics in the defined order
+  for key in metric_order
+    if haskey(metrics, key)
+      println("  $key: $(metrics[key])")
     end
   end
+
+  # Print the confusion matrix last
+  if haskey(metrics, "ConfusionMatrix")
+    cm = metrics["ConfusionMatrix"]
+    println("\nConfusion Matrix:")
+    println("                Predicted")
+    println("          Ancient    Modern")
+    println("Actual")
+    println("Ancient   $(cm[1,1])        $(cm[1,2])")
+    println("Modern    $(cm[2,1])        $(cm[2,2])")
+  end
+
   return result
 end
 
