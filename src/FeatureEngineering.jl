@@ -8,11 +8,10 @@ include("util/features.jl")
 include("flow/features.jl")
 include("inter/repl/features.jl")
 include("inter/cli/features.jl")
-include("inter/doc/features.jl")
 
 ####################################################################################################
 
-export FECore, FEFlow, FECLI, FEREPL, FEDoc
+export FECore, FEFlow, FECLI, FEREPL
 
 ####################################################################################################
 
