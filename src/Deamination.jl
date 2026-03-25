@@ -8,11 +8,10 @@ include("util/deamination.jl")
 include("flow/deamination.jl")
 include("inter/repl/deamination.jl")
 include("inter/cli/deamination.jl")
-include("inter/doc/deamination.jl")
 
 ####################################################################################################
 
-export DACore, DAFlow, DACLI, DAREPL, DADoc
+export DACore, DAFlow, DACLI, DAREPL
 
 ####################################################################################################
 
