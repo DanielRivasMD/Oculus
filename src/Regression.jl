@@ -8,11 +8,10 @@ include("util/regression.jl")
 include("flow/regression.jl")
 include("inter/repl/regression.jl")
 include("inter/cli/regression.jl")
-include("inter/doc/regression.jl")
 
 ####################################################################################################
 
-export RGCore, RGFlow, RGCLI, RGREPL, RGDoc
+export RGCore, RGFlow, RGCLI, RGREPL
 
 ####################################################################################################
 
