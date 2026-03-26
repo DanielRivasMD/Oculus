@@ -21,6 +21,7 @@ p1 = scatter(
   legendtitle = "Label",
   labels = ["Ancient (0)" "Modern (1)"],
 )
+savefig(p1, "data/graph/png/ga3p5_vs_ct5p5_all.png")
 
 p2 = scatter(
   df.ga3p_5[df.label.==0],
@@ -32,6 +33,7 @@ p2 = scatter(
   title = "Ancient only",
   legend = false,
 )
+savefig(p2, "data/graph/png/ga3p5_vs_ct5p5_ancient.png")
 
 p3 = scatter(
   df.ga3p_5[df.label.==1],
@@ -43,5 +45,4 @@ p3 = scatter(
   title = "Modern only",
   legend = false,
 )
-
-plot(p1, p2, p3, layout = (3, 1), size = (1200, 400))
+savefig(p3, "data/graph/png/ga3p5_vs_ct5p5_modern.png")
