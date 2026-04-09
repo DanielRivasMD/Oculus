@@ -1,32 +1,8 @@
 - once model works, test on denisovan & other species
+- test on treated & non-treated samples
+- find one or several situations where identification of single sequences would shine, perhaps re-analyze datasets?
 
-imported performance metrics
-create outputs to measure model performance with ease
-looking into decision trees models
 
-Oculus (analysis repo)
-│
-├── Process module
-│     ↑ pure functions
-│
-├── FeatureWorkflow module
-│     ├── uses Process
-│     └── uses Avicenna.Workflow
-│
-├── CLI module
-│     └── uses FeatureWorkflow + Avicenna.Workflow
-│
-└── REPL module
-      └── uses FeatureWorkflow + Avicenna.Workflow
 
 ==================================================
-sh/bin/trimfasta.sh
-  line 5      BUG    trimming for modern keeps on the identified read lenght, not the cummulative after padding
-src/bin/inference.jl
-  line 1      TODO   fixed output naming
-  line 2      TODO   pass seq len as arg
-src/bin/regression.jl
-  line 177    TODO   finish debuging performance metrics
-src/config/args.jl
-  line 3      DOC    kept for source code reference purpose, otherwise deprecated
 ==================================================
