@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Compute read length distribution from a FASTA file
 
 ####################################################################################################

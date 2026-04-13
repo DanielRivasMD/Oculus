@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Convert BAM → FASTA using samtools + seqtk
 # Supports whole-genome or per-chromosome extraction
 # Filters out non-canonical contigs (keeps only chr1–chr22, chrX, chrY, chrM)
