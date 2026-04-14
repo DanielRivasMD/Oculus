@@ -2,6 +2,10 @@
 - test on treated & non-treated samples
 - find one or several situations where identification of single sequences would shine, perhaps re-analyze datasets?
 
+calcualte dimer composition as a better metric than deamination footprint
+migrate parsers to rust
+write cnn implementation with read quality as a sub layer during hot encoding
+
 
 
 ==================================================
