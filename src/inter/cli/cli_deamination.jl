@@ -1,13 +1,21 @@
+####################################################################################################
+
 module DACLI
 
+####################################################################################################
+
 using ArgParse
-using Avicenna.Flow: Cache, run
+using Avicenna.Flow: Cache, launch
 using ..DAFlow: deamination_flow
 using ..DACore: fname
 
-export run_deamination
+####################################################################################################
 
-function run_deamination(args)
+export run
+
+####################################################################################################
+
+function run(args)
   s = ArgParseSettings()
   @add_arg_table! s begin
     "--modern"
@@ -47,7 +55,7 @@ function run_deamination(args)
   )
 
   cache = Cache("cache/deamination", !parsed["no-cache"])
-  result = run(deamination_flow, config, cache = cache)
+  result = launch(deamination_flow, config, cache = cache)
 
   println("Deamination analysis complete.")
   println("CSV: ", config["csv"])
@@ -55,4 +63,8 @@ function run_deamination(args)
   return result
 end
 
+####################################################################################################
+
 end
+
+####################################################################################################
