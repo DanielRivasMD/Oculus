@@ -1,12 +1,20 @@
+####################################################################################################
+
 module DTCLI
 
+####################################################################################################
+
 using ArgParse
-using Avicenna.Flow: Cache, run
+using Avicenna.Flow: Cache, launch
 using ..DTFlow: decision_tree_flow
 
-export run_decision_tree
+####################################################################################################
 
-function run_decision_tree(args)
+export run
+
+####################################################################################################
+
+function run(args)
   s = ArgParseSettings()
   @add_arg_table! s begin
     "--in"
@@ -90,7 +98,7 @@ function run_decision_tree(args)
   )
 
   cache = Cache("cache/decision_tree", !parsed["no-cache"])
-  result = run(decision_tree_flow, config, cache = cache)
+  result = launch(decision_tree_flow, config, cache = cache)
 
   if parsed["out"] !== nothing
     println("Predictions written to ", parsed["out"])
@@ -104,4 +112,8 @@ function run_decision_tree(args)
   return result
 end
 
+####################################################################################################
+
 end
+
+####################################################################################################
