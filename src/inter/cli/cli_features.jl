@@ -6,17 +6,17 @@ module FECLI
 
 using ArgParse
 using TOML
-using Avicenna.Flow: Cache, run
+using Avicenna.Flow: Cache, launch
 using ..FEFlow: features_flow
 using ..FECore: file_hash
 
 ####################################################################################################
 
-export run_features
+export run
 
 ####################################################################################################
 
-function run_features(args)
+function run(args)
   s = ArgParseSettings()
   @add_arg_table! s begin
     "--modern"
@@ -52,7 +52,7 @@ function run_features(args)
   config["_ancient_hash"] = file_hash(config["ancient"])
 
   cache = Cache("cache/feature", !parsed["no-cache"])
-  result = run(features_flow, config, cache = cache)
+  result = launch(features_flow, config, cache = cache)
 
   println("Feature extraction complete. Output written to ", config["out"])
   return result
