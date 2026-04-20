@@ -1,12 +1,20 @@
+####################################################################################################
+
 module PECLI
 
+####################################################################################################
+
 using ArgParse
-using Avicenna.Flow: Cache, run
+using Avicenna.Flow: Cache, launch
 using ..PEFlow: performance_flow
 
-export run_performance
+####################################################################################################
 
-function run_performance(args)
+export run
+
+####################################################################################################
+
+function run(args)
   s = ArgParseSettings()
   @add_arg_table! s begin
     "--in"
@@ -23,7 +31,7 @@ function run_performance(args)
   config = Dict{String,Any}("infile" => parsed["in"])
 
   cache = Cache("cache/performance", !parsed["no-cache"])
-  result = run(performance_flow, config, cache = cache)
+  result = launch(performance_flow, config, cache = cache)
 
   println("Performance metrics for $(parsed["in"]):")
   metrics = result.stage_outputs["compute_metrics"]
@@ -65,4 +73,8 @@ function run_performance(args)
   return result
 end
 
+####################################################################################################
+
 end
+
+####################################################################################################
