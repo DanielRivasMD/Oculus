@@ -1,12 +1,20 @@
+####################################################################################################
+
 module RGCLI
 
+####################################################################################################
+
 using ArgParse
-using Avicenna.Flow: Cache, run
+using Avicenna.Flow: Cache, launch
 using ..RGFlow: regression_flow
 
-export run_regression
+####################################################################################################
 
-function run_regression(args)
+export run
+
+####################################################################################################
+
+function run(args)
   s = ArgParseSettings()
   @add_arg_table! s begin
     "--in"
@@ -55,7 +63,7 @@ function run_regression(args)
   )
 
   cache = Cache("cache/regression", !parsed["no-cache"])
-  result = run(regression_flow, config, cache = cache)
+  result = launch(regression_flow, config, cache = cache)
 
   if parsed["out"] !== nothing
     println("Predictions written to ", parsed["out"])
@@ -70,4 +78,8 @@ function run_regression(args)
   return result
 end
 
+####################################################################################################
+
 end
+
+####################################################################################################
