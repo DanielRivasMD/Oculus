@@ -14,6 +14,7 @@ using LinearAlgebra
 
 ####################################################################################################
 
+# TODO: migrate common functions to shared util file
 export readdf,
   load_data,
   split_data,
@@ -154,6 +155,7 @@ Compute basic classification metrics: accuracy, sensitivity, specificity, etc.
 Expects 0/1 labels.
 """
 function evaluate(y_true, y_pred)
+  # TODO: refactor function to utilize existing functions instead of calculating from scratch; reason => reliability
   cm = zeros(Int, 2, 2)
   for (t, p) in zip(y_true, y_pred)
     cm[t+1, p+1] += 1   # because labels 0/1 -> indices 1/2

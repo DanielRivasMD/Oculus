@@ -7,4 +7,10 @@ write cnn implementation with read quality as a sub layer during hot encoding
 
 
 ==================================================
+src/flow/flow_regression.jl
+  line 17     TODO   verify which section of the split is used for training & for testing
+  line 89     TODO   we need original indices, not preserved. output row numbers from the test set for now. store indices in split_data?
+src/util/util_regression.jl
+  line 17     TODO   migrate common functions to shared util file
+  line 158    TODO   refactor function to utilize existing functions instead of calculating from scratch; reason => reliability
 ==================================================
