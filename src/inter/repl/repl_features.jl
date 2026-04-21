@@ -4,43 +4,43 @@ module FEREPL
 
 ####################################################################################################
 
-using Avicenna.Flow: Cache, run
-using ..FEFlow: features_flow
+using Avicenna.Flow: Cache, launch
+using ..FEFlow: flow
 using ..FECore: file_hash
 
 ####################################################################################################
 
-export run_features
+export run
 
 ####################################################################################################
 
 """
-    run_features(;
-      modern::String,
+    run(;
       ancient::String,
+      modern::String,
       out::String="features.csv",
       onehot::Bool=false,
       no_cache::Bool=false) -> Avicenna.Result
 
 Run the feature extraction workflow from the REPL.
 """
-function run_features(;
-  modern::String,
+function run(;
   ancient::String,
+  modern::String,
   out::String = "features.csv",
   onehot::Bool = false,
   no_cache::Bool = false,
 )
   config = Dict{String,Any}(
-    "modern" => modern,
     "ancient" => ancient,
+    "modern" => modern,
     "out" => out,
     "onehot" => onehot,
-    "_modern_hash" => file_hash(modern),
     "_ancient_hash" => file_hash(ancient),
+    "_modern_hash" => file_hash(modern),
   )
   cache = Cache("cache/feature", !no_cache)
-  return run(features_flow, config, cache = cache)
+  return launch(flow, config, cache = cache)
 end
 
 ####################################################################################################
