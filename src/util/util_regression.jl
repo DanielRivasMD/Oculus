@@ -1,4 +1,8 @@
+####################################################################################################
+
 module RGCore
+
+####################################################################################################
 
 using DataFrames
 using DelimitedFiles
@@ -7,6 +11,8 @@ using GLMNet
 using Random
 using StatsBase
 using LinearAlgebra
+
+####################################################################################################
 
 export readdf,
   load_data,
@@ -17,6 +23,8 @@ export readdf,
   evaluate,
   write_predictions
 
+####################################################################################################
+
 """
     readdf(path; sep=',') -> DataFrame
 
@@ -26,6 +34,8 @@ function readdf(path::String; sep::Char = ',')
   data, header = readdlm(path, sep, header = true)
   return DataFrame(data, vec(header))
 end
+
+####################################################################################################
 
 """
     load_data(path::String; label_col="label") -> DataFrame
@@ -39,6 +49,8 @@ function load_data(path::String; label_col = "label")::DataFrame
   end
   return df
 end
+
+####################################################################################################
 
 """
     split_data(df::DataFrame, split_frac::Float64, seed::Int) -> (train_df, test_df)
@@ -65,6 +77,8 @@ function split_data(df::DataFrame, split_frac::Float64, seed::Int)
   return df[train_idx, :], df[test_idx, :]
 end
 
+####################################################################################################
+
 """
     train_logistic(df_train::DataFrame) -> GLM.LogitModel
 
@@ -74,6 +88,8 @@ function train_logistic(df_train::DataFrame)
   f = Term(:label) ~ sum(Term.(Symbol.(setdiff(names(df_train), ["label"]))))
   return glm(f, df_train, Binomial(), LogitLink())
 end
+
+####################################################################################################
 
 """
     train_glmnet(df_train::DataFrame, reg::String, alpha::Float64, nfolds::Int, seed::Int) -> (intercept, betas, best_lambda)
@@ -117,6 +133,8 @@ function train_glmnet(
   return intercept, betas, best_lambda
 end
 
+####################################################################################################
+
 """
     predict_glmnet(intercept::Float64, betas::Vector{Float64}, X_test::Matrix) -> Vector{Float64}
 
@@ -126,6 +144,8 @@ function predict_glmnet(intercept, betas, X_test)
   linpred = intercept .+ X_test * betas
   return 1 ./ (1 .+ exp.(-linpred))
 end
+
+####################################################################################################
 
 """
     evaluate(y_true::Vector{Int}, y_pred::Vector{Int}) -> Dict
@@ -156,6 +176,8 @@ function evaluate(y_true, y_pred)
   )
 end
 
+####################################################################################################
+
 """
     write_predictions(path::String, predictions::Vector{Int}, test_indices::Vector{Int}, truth::Vector{Int})
 
@@ -174,4 +196,8 @@ function write_predictions(
   writedlm(path, vcat(header, data), ',')
 end
 
+####################################################################################################
+
 end
+
+####################################################################################################
