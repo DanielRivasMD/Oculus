@@ -6,7 +6,7 @@ module PECLI
 
 using ArgParse
 using Avicenna.Flow: Cache, launch
-using ..PEFlow: performance_flow
+using ..PEFlow: flow
 
 ####################################################################################################
 
@@ -31,12 +31,11 @@ function run(args)
   config = Dict{String,Any}("infile" => parsed["in"])
 
   cache = Cache("cache/performance", !parsed["no-cache"])
-  result = launch(performance_flow, config, cache = cache)
+  result = launch(flow, config, cache = cache)
 
-  println("Performance metrics for $(parsed["in"]):")
+  println("Performance metrics: $(parsed["in"]):")
   metrics = result.stage_outputs["compute_metrics"]
 
-  # Define the order for numeric metrics
   metric_order = [
     "Accuracy",
     "Sensitivity",
@@ -52,14 +51,12 @@ function run(args)
     "NPV",
   ]
 
-  # Print numeric metrics in the defined order
   for key in metric_order
     if haskey(metrics, key)
       println("  $key: $(metrics[key])")
     end
   end
 
-  # Print the confusion matrix last
   if haskey(metrics, "ConfusionMatrix")
     cm = metrics["ConfusionMatrix"]
     println("\nConfusion Matrix:")
