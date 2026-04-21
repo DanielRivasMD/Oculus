@@ -10,6 +10,7 @@ using SHA
 
 ####################################################################################################
 
+# TODO: migrate common functions to shared util file
 export load_fasta, minimal_features, onehot_features, build_df, writedf, file_hash
 
 ####################################################################################################
