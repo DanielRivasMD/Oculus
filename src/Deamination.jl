@@ -4,10 +4,10 @@ module DA
 
 ####################################################################################################
 
-include("util/util_deamination.jl")
-include("flow/flow_deamination.jl")
-include("inter/repl/repl_deamination.jl")
-include("inter/cli/cli_deamination.jl")
+include("util/dautil.jl")
+include("flow/daflow.jl")
+include("inter/repl/darepl.jl")
+include("inter/cli/dacli.jl")
 
 ####################################################################################################
 
