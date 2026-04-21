@@ -1,9 +1,16 @@
+####################################################################################################
+
 module PECore
+
+####################################################################################################
 
 using DataFrames
 using DelimitedFiles
 using FreqTables
 
+####################################################################################################
+
+# TODO: migrate common functions to shared util file
 export accuracy,
   balancedAccuracy,
   FDR,
@@ -18,6 +25,8 @@ export accuracy,
   specificity,
   performance
 
+####################################################################################################
+
 """
     accuracy(a::Matrix)
 Calculate accuracy from a 2×2 confusion matrix.
@@ -28,6 +37,8 @@ function accuracy(a::Matrix)
   end
   return (a[1, 1] + a[2, 2]) / sum(a)
 end
+
+####################################################################################################
 
 """
     balancedAccuracy(a::Matrix)
@@ -40,6 +51,8 @@ function balancedAccuracy(a::Matrix)
   return (sensitivity(a) + specificity(a)) / 2
 end
 
+####################################################################################################
+
 """
     FDR(a::Matrix)
 Calculate False Discovery Rate from a 2×2 confusion matrix.
@@ -50,6 +63,8 @@ function FDR(a::Matrix)
   end
   return a[1, 2] / (a[1, 1] + a[1, 2])
 end
+
+####################################################################################################
 
 """
     FNR(a::Matrix)
@@ -62,6 +77,8 @@ function FNR(a::Matrix)
   return a[2, 1] / (a[1, 1] + a[2, 1])
 end
 
+####################################################################################################
+
 """
     FOR(a::Matrix)
 Calculate False Omission Rate from a 2×2 confusion matrix.
@@ -72,6 +89,8 @@ function FOR(a::Matrix)
   end
   return a[2, 1] / (a[2, 1] + a[2, 2])
 end
+
+####################################################################################################
 
 """
     FPR(a::Matrix)
@@ -84,6 +103,8 @@ function FPR(a::Matrix)
   return a[1, 2] / (a[1, 2] + a[2, 2])
 end
 
+####################################################################################################
+
 """
     fScore(a::Matrix)
 Calculate F1 score from a 2×2 confusion matrix.
@@ -94,6 +115,8 @@ function fScore(a::Matrix)
   end
   return 2 * (PPV(a) * sensitivity(a)) / (PPV(a) + sensitivity(a))
 end
+
+####################################################################################################
 
 """
     MCC(a::Matrix)
@@ -110,6 +133,8 @@ function MCC(a::Matrix)
   return num / den
 end
 
+####################################################################################################
+
 """
     NPV(a::Matrix)
 Calculate Negative Predictive Value from a 2×2 confusion matrix.
@@ -120,6 +145,8 @@ function NPV(a::Matrix)
   end
   return a[2, 2] / (a[2, 2] + a[2, 1])
 end
+
+####################################################################################################
 
 """
     PPV(a::Matrix)
@@ -132,6 +159,8 @@ function PPV(a::Matrix)
   return a[1, 1] / (a[1, 1] + a[1, 2])
 end
 
+####################################################################################################
+
 """
     sensitivity(a::Matrix)
 Calculate Sensitivity (True Positive Rate, Recall) from a 2×2 confusion matrix.
@@ -143,6 +172,8 @@ function sensitivity(a::Matrix)
   return a[1, 1] / (a[1, 1] + a[2, 1])
 end
 
+####################################################################################################
+
 """
     specificity(a::Matrix)
 Calculate Specificity (True Negative Rate) from a 2×2 confusion matrix.
@@ -153,6 +184,8 @@ function specificity(a::Matrix)
   end
   return a[2, 2] / (a[2, 2] + a[1, 2])
 end
+
+####################################################################################################
 
 """
     performance(tb::Vector, label::Vector)
@@ -170,6 +203,8 @@ function performance(tb::Vector, label::Vector)
   cm = [pos[1] pos[2]; neg[1] neg[2]]
   return performance(cm)
 end
+
+####################################################################################################
 
 """
     performance(a::Matrix)
@@ -196,4 +231,22 @@ function performance(a::Matrix)
   )
 end
 
+####################################################################################################
+
+function load_predictions(path::String)
+  data, header = readdlm(path, ',', header = true)
+  df = DataFrame(data, vec(header))
+  # Ensure required columns exist
+  for col in ["truth", "prediction"]
+    if !(col in names(df))
+      error("CSV must contain column '$col'")
+    end
+  end
+  return df
 end
+
+####################################################################################################
+
+end
+
+####################################################################################################
