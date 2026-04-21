@@ -1,13 +1,24 @@
+####################################################################################################
+
 module DACore
+
+####################################################################################################
 
 using DelimitedFiles
 using Plots
 using FilePathsBase: splitpath
 
+####################################################################################################
+
+# TODO: migrate common functions to shared util file
 export load_fasta,
   position_composition, write_csv, plot_composition, compare_fasta_files, fname
 
+####################################################################################################
+
 fname(path::String) = splitpath(path)[end]
+
+####################################################################################################
 
 """
     load_fasta(path::String) -> Vector{String}
@@ -33,6 +44,8 @@ function load_fasta(path::String)::Vector{String}
   end
   return seqs
 end
+
+####################################################################################################
 
 """
     position_composition(seqs::Vector{String}) -> Vector{Dict{Char,Float64}}
@@ -68,6 +81,8 @@ function position_composition(seqs::Vector{String})::Vector{Dict{Char,Float64}}
 
   return comps
 end
+
+####################################################################################################
 
 function write_csv(
   outpath::String,
@@ -105,6 +120,8 @@ function write_csv(
 
   writedlm(outpath, vcat(header, data), ',')
 end
+
+####################################################################################################
 
 """
     plot_composition(csvfile::String; outfile::Union{Nothing,String}=nothing)
@@ -162,6 +179,8 @@ function plot_composition(csvfile::String; outfile::Union{Nothing,String} = noth
   end
 end
 
+####################################################################################################
+
 """
     compare_fasta_files(modern::String, ancient::String; csv_out::String, verbose::Bool=false)
 
@@ -202,4 +221,8 @@ function compare_fasta_files(
   println("CSV written to $csv_out")
 end
 
+####################################################################################################
+
 end
+
+####################################################################################################
