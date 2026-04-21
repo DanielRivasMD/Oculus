@@ -4,10 +4,10 @@ module DT
 
 ####################################################################################################
 
-include("util/util_decision_tree.jl")
-include("flow/flow_decision_tree.jl")
-include("inter/cli/cli_decision_tree.jl")
-include("inter/repl/repl_decision_tree.jl")
+include("util/dtutil.jl")
+include("flow/dtflow.jl")
+include("inter/cli/dtcli.jl")
+include("inter/repl/dtrepl.jl")
 
 ####################################################################################################
 
