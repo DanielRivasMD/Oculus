@@ -6,7 +6,7 @@ module RGCLI
 
 using ArgParse
 using Avicenna.Flow: Cache, launch
-using ..RGFlow: regression_flow
+using ..RGFlow: flow
 
 ####################################################################################################
 
@@ -63,7 +63,7 @@ function run(args)
   )
 
   cache = Cache("cache/regression", !parsed["no-cache"])
-  result = launch(regression_flow, config, cache = cache)
+  result = launch(flow, config, cache = cache)
 
   if parsed["out"] !== nothing
     println("Predictions written to ", parsed["out"])
