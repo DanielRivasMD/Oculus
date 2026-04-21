@@ -1,24 +1,32 @@
+####################################################################################################
+
 module DTFlow
+
+####################################################################################################
 
 using Avicenna.Flow: Stage, Config
 using ..DTCore
 
-export decision_tree_flow
+####################################################################################################
 
-const decision_tree_flow = Config(
+export flow
+
+####################################################################################################
+
+const flow = Config(
   "decision_tree_analysis",
   [
-    Stage("load_data", (config, _) -> DTCore.load_data(config["infile"]), "1.0"),
+    Stage("01_load_data", (config, _) -> DTCore.load_data(config["infile"]), "1.0"),
     Stage(
-      "split_data",
+      "02_split_data",
       (config, prev) ->
-        DTCore.split_data(prev["load_data"], config["split"], config["seed"]),
+        DTCore.split_data(prev["01_load_data"], config["split"], config["seed"]),
       "1.0",
     ),
     Stage(
-      "train",
+      "03_train",
       (config, prev) -> begin
-        train_df = prev["split_data"][1]
+        train_df = prev["02_split_data"][1]
         if isempty(train_df)
           error("Training set is empty")
         end
@@ -62,42 +70,42 @@ const decision_tree_flow = Config(
       "1.0",
     ),
     Stage(
-      "predict",
+      "04_predict",
       (config, prev) -> begin
-        test_df = prev["split_data"][2]
+        test_df = prev["02_split_data"][2]
         if isempty(test_df)
           return Int[]
         end
         feature_cols = setdiff(names(test_df), ["label"])
         X_test = Matrix(test_df[:, feature_cols])
-        model = prev["train"]
+        model = prev["03_train"]
         model_type = config["model"]
         return DTCore.predict(model, X_test, model_type)
       end,
       "1.0",
     ),
-    Stage("evaluate", (config, prev) -> begin
-      test_df = prev["split_data"][2]
+    Stage("05_evaluate", (config, prev) -> begin
+      test_df = prev["02_split_data"][2]
       if isempty(test_df)
         return Dict()
       end
       truth = Int.(test_df.label)
-      preds = prev["predict"]
+      preds = prev["04_predict"]
       return DTCore.evaluate(truth, preds)
     end, "1.0"),
     Stage(
-      "write_output",
+      "06_write_output",
       (config, prev) -> begin
         if config["out"] === nothing
           return nothing
         end
-        test_df = prev["split_data"][2]
+        test_df = prev["02_split_data"][2]
         if isempty(test_df)
           return nothing
         end
-        test_indices = collect(1:size(test_df, 1))  # placeholder – not the original indices.
+        test_indices = collect(1:size(test_df, 1))  # placeholder - not the original indices.
         truth = Int.(test_df.label)
-        preds = prev["predict"]
+        preds = prev["04_predict"]
         DTCore.write_predictions(config["out"], preds, test_indices, truth)
         return nothing
       end,
@@ -107,4 +115,8 @@ const decision_tree_flow = Config(
   "1.0",
 )
 
+####################################################################################################
+
 end
+
+####################################################################################################
