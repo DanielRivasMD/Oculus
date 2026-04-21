@@ -14,20 +14,21 @@ export flow
 
 ####################################################################################################
 
+# TODO: verify which section of the split is used for training & for testing
 const flow = Config(
   "regression_analysis",
   [
-    Stage("load_data", (config, _) -> RGCore.load_data(config["infile"]), "1.0"),
+    Stage("01_load_data", (config, _) -> RGCore.load_data(config["infile"]), "1.0"),
     Stage(
-      "split_data",
+      "02_split_data",
       (config, prev) ->
-        RGCore.split_data(prev["load_data"], config["split"], config["seed"]),
+        RGCore.split_data(prev["01_load_data"], config["split"], config["seed"]),
       "1.0",
     ),
     Stage(
-      "train",
+      "03_train",
       (config, prev) -> begin
-        train_df = prev["split_data"][1]
+        train_df = prev["02_split_data"][1]
         if config["reg"] == "none"
           return RGCore.train_logistic(train_df)
         else
@@ -43,20 +44,20 @@ const flow = Config(
       "1.0",
     ),
     Stage(
-      "predict",
+      "04_predict",
       (config, prev) -> begin
-        test_df = prev["split_data"][2]
+        test_df = prev["02_split_data"][2]
         if isempty(test_df)
           return Float64[]
         end
         if config["reg"] == "none"
-          model = prev["train"]
+          model = prev["03_train"]
           # Predict probabilities
           probs = GLM.predict(model, test_df)
           preds = Int.(probs .>= 0.5)
           return (probs, preds)
         else
-          intercept, betas, _ = prev["train"]
+          intercept, betas, _ = prev["03_train"]
           feature_cols = setdiff(names(test_df), ["label"])
           X_test = Matrix(test_df[:, feature_cols])
           probs = RGCore.predict_glmnet(intercept, betas, X_test)
@@ -66,30 +67,29 @@ const flow = Config(
       end,
       "1.0",
     ),
-    Stage("evaluate", (config, prev) -> begin
-      test_df = prev["split_data"][2]
+    Stage("05_evaluate", (config, prev) -> begin
+      test_df = prev["02_split_data"][2]
       if isempty(test_df)
         return Dict()
       end
       truth = Int.(test_df.label)
-      preds = prev["predict"][2]
+      preds = prev["04_predict"][2]
       return RGCore.evaluate(truth, preds)
     end, "1.0"),
     Stage(
-      "write_output",
+      "06_write_output",
       (config, prev) -> begin
         if config["out"] === nothing
           return nothing
         end
-        test_df = prev["split_data"][2]
+        test_df = prev["02_split_data"][2]
         if isempty(test_df)
           return nothing
         end
-        # We need original indices; we didn't preserve them. We'll just output row numbers from the test set.
-        # Alternative: we could have stored indices in split_data; but for simplicity, we'll use row numbers (1-based).
-        test_indices = collect(1:size(test_df, 1))  # placeholder – not the original indices.
+        # TODO: we need original indices, not preserved. output row numbers from the test set for now. store indices in split_data?
+        test_indices = collect(1:size(test_df, 1))  # placeholder - not the original indices.
         truth = Int.(test_df.label)
-        preds = prev["predict"][2]
+        preds = prev["03_predict"][2]
         RGCore.write_predictions(config["out"], preds, test_indices, truth)
         return nothing
       end,
