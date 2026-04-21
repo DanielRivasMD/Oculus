@@ -4,10 +4,10 @@ module PE
 
 ####################################################################################################
 
-include("util/util_performance.jl")
-include("flow/flow_performance.jl")
-include("inter/cli/cli_performance.jl")
-include("inter/repl/repl_performance.jl")
+include("util/peutil.jl")
+include("flow/peflow.jl")
+include("inter/cli/pecli.jl")
+include("inter/repl/perepl.jl")
 
 ####################################################################################################
 
