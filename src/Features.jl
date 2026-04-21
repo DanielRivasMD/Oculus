@@ -4,10 +4,10 @@ module FE
 
 ####################################################################################################
 
-include("util/features.jl")
-include("flow/features.jl")
-include("inter/repl/features.jl")
-include("inter/cli/features.jl")
+include("util/util_features.jl")
+include("flow/flow_features.jl")
+include("inter/repl/repl_features.jl")
+include("inter/cli/cli_features.jl")
 
 ####################################################################################################
 
