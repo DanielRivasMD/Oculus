@@ -7,7 +7,7 @@ module FECLI
 using ArgParse
 using TOML
 using Avicenna.Flow: Cache, launch
-using ..FEFlow: features_flow
+using ..FEFlow: flow
 using ..FECore: file_hash
 
 ####################################################################################################
@@ -19,12 +19,12 @@ export run
 function run(args)
   s = ArgParseSettings()
   @add_arg_table! s begin
-    "--modern"
-    help = "Path to modern FASTA file"
-    arg_type = String
-    required = true
     "--ancient"
     help = "Path to ancient FASTA file"
+    arg_type = String
+    required = true
+    "--modern"
+    help = "Path to modern FASTA file"
     arg_type = String
     required = true
     "--out"
@@ -37,6 +37,9 @@ function run(args)
     "--no-cache"
     help = "Disable caching"
     action = :store_true
+    "--verbose"
+    help = "Enable verbose diagnostics"
+    action = :store_false
   end
   parsed = parse_args(args, s)
 
@@ -47,14 +50,17 @@ function run(args)
     "onehot" => parsed["onehot"],
   )
 
-  # Add file hashes for cache invalidation
+  # TODO: Add file hashes for cache invalidation?
   config["_modern_hash"] = file_hash(config["modern"])
   config["_ancient_hash"] = file_hash(config["ancient"])
 
   cache = Cache("cache/feature", !parsed["no-cache"])
-  result = launch(features_flow, config, cache = cache)
+  result = launch(flow, config, cache = cache)
 
-  println("Feature extraction complete. Output written to ", config["out"])
+  if parsed["verbose"]
+    println("Feature extraction complete")
+    println("CSV: ", config["out"])
+  end
   return result
 end
 
