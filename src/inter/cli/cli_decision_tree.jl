@@ -6,7 +6,7 @@ module DTCLI
 
 using ArgParse
 using Avicenna.Flow: Cache, launch
-using ..DTFlow: decision_tree_flow
+using ..DTFlow: flow
 
 ####################################################################################################
 
@@ -76,6 +76,9 @@ function run(args)
     "--no-cache"
     help = "Disable caching"
     action = :store_true
+    "--verbose"
+    help = "Enable verbose diagnostics"
+    action = :store_false
   end
 
   parsed = parse_args(args, s)
@@ -98,15 +101,17 @@ function run(args)
   )
 
   cache = Cache("cache/decision_tree", !parsed["no-cache"])
-  result = launch(decision_tree_flow, config, cache = cache)
+  result = launch(flow, config, cache = cache)
 
-  if parsed["out"] !== nothing
-    println("Predictions written to ", parsed["out"])
-  end
-  if !isempty(result.stage_outputs["evaluate"])
-    println("Evaluation metrics:")
-    for (k, v) in result.stage_outputs["evaluate"]
-      println("  $k: $v")
+  if parsed["verbose"]
+    if parsed["out"] !== nothing
+      println("Predictions: ", parsed["out"])
+    end
+    if !isempty(result.stage_outputs["evaluate"])
+      println("Evaluation metrics:")
+      for (k, v) in result.stage_outputs["evaluate"]
+        println("  $k: $v")
+      end
     end
   end
   return result
