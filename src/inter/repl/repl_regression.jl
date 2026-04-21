@@ -1,16 +1,24 @@
+####################################################################################################
+
 module RGREPL
 
-using Avicenna.Flow: Cache, run
-using ..RGFlow: regression_flow
+####################################################################################################
 
-export run_regression
+using Avicenna.Flow: Cache, launch
+using ..RGFlow: flow
+
+####################################################################################################
+
+export run
+
+####################################################################################################
 
 """
-    run_regression(infile::String; out=nothing, reg="none", alpha=0.5, nfolds=10, split=0.6, seed=42, no_cache=false)
+    run(infile::String; out=nothing, reg="none", alpha=0.5, nfolds=10, split=0.6, seed=42, no_cache=false)
 
 Run the regression workflow from the REPL.
 """
-function run_regression(
+function run(
   infile::String;
   out::Union{String,Nothing} = nothing,
   reg::String = "none",
@@ -30,7 +38,11 @@ function run_regression(
     "seed" => seed,
   )
   cache = Cache("cache/regression", !no_cache)
-  return run(regression_flow, config, cache = cache)
+  return launch(flow, config, cache = cache)
 end
 
+####################################################################################################
+
 end
+
+####################################################################################################
