@@ -1,10 +1,20 @@
+####################################################################################################
+
 module PE
 
-include("util/performance.jl")
-include("flow/performance.jl")
-include("inter/cli/performance.jl")
-include("inter/repl/performance.jl")
+####################################################################################################
+
+include("util/util_performance.jl")
+include("flow/flow_performance.jl")
+include("inter/cli/cli_performance.jl")
+include("inter/repl/repl_performance.jl")
+
+####################################################################################################
 
 export PECore, PEFlow, PECLI, PEREPL
 
+####################################################################################################
+
 end
+
+####################################################################################################
