@@ -4,10 +4,10 @@ module RG
 
 ####################################################################################################
 
-include("util/regression.jl")
-include("flow/regression.jl")
-include("inter/repl/regression.jl")
-include("inter/cli/regression.jl")
+include("util/util_regression.jl")
+include("flow/flow_regression.jl")
+include("inter/repl/repl_regression.jl")
+include("inter/cli/cli_regression.jl")
 
 ####################################################################################################
 
