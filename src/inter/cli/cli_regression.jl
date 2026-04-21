@@ -69,9 +69,9 @@ function run(args)
   result = launch(flow, config, cache = cache)
 
   if parsed["verbose"]
-  if parsed["out"] !== nothing
-    println("Predictions: ", parsed["out"])
-  end
+    if parsed["out"] !== nothing
+      println("Predictions: ", parsed["out"])
+    end
     if !isempty(result.stage_outputs["evaluate"])
       println("Evaluation metrics:")
       for (k, v) in result.stage_outputs["evaluate"]
