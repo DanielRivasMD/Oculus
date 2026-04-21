@@ -48,6 +48,9 @@ function run(args)
     "--no-cache"
     help = "Disable caching"
     action = :store_true
+    "--verbose"
+    help = "Enable verbose diagnostics"
+    action = :store_false
   end
 
   parsed = parse_args(args, s)
@@ -68,11 +71,12 @@ function run(args)
   if parsed["out"] !== nothing
     println("Predictions written to ", parsed["out"])
   end
-  # Optionally print evaluation metrics
-  if !isempty(result.stage_outputs["evaluate"])
-    println("Evaluation metrics:")
-    for (k, v) in result.stage_outputs["evaluate"]
-      println("  $k: $v")
+  if !parsed["verbose"]
+    if !isempty(result.stage_outputs["evaluate"])
+      println("Evaluation metrics:")
+      for (k, v) in result.stage_outputs["evaluate"]
+        println("  $k: $v")
+      end
     end
   end
   return result
