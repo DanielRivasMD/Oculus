@@ -1,19 +1,27 @@
+####################################################################################################
+
 module DTREPL
 
-using Avicenna.Flow: Cache, run
-using ..DTFlow: decision_tree_flow
+####################################################################################################
 
-export run_decision_tree
+using Avicenna.Flow: Cache, launch
+using ..DTFlow: flow
+
+####################################################################################################
+
+export run
+
+####################################################################################################
 
 """
-    run_decision_tree(infile::String; out=nothing, model="tree", split=0.2, seed=42,
-                      max_depth=6, min_samples_leaf=5, n_trees=100, rf_partial_sampling=0.7,
-                      xgb_rounds=200, xgb_eta=0.1, xgb_max_depth=6, xgb_subsample=0.8,
-                      xgb_colsample_bytree=0.8, no_cache=false) -> WorkflowResult
+    run(infile::String; out=nothing, model="tree", split=0.2, seed=42,
+        max_depth=6, min_samples_leaf=5, n_trees=100, rf_partial_sampling=0.7,
+        xgb_rounds=200, xgb_eta=0.1, xgb_max_depth=6, xgb_subsample=0.8,
+        xgb_colsample_bytree=0.8, no_cache=false) -> WorkflowResult
 
 Run the decision tree/random forest/XGBoost workflow from the REPL.
 """
-function run_decision_tree(
+function run(
   infile::String;
   out::Union{String,Nothing} = nothing,
   model::String = "tree",
@@ -47,7 +55,11 @@ function run_decision_tree(
     "xgb_colsample_bytree" => xgb_colsample_bytree,
   )
   cache = Cache("cache/decision_tree", !no_cache)
-  return run(decision_tree_flow, config, cache = cache)
+  return launch(flow, config, cache = cache)
 end
 
+####################################################################################################
+
 end
+
+####################################################################################################
