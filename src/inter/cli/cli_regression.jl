@@ -68,10 +68,10 @@ function run(args)
   cache = Cache("cache/regression", !parsed["no-cache"])
   result = launch(flow, config, cache = cache)
 
+  if parsed["verbose"]
   if parsed["out"] !== nothing
-    println("Predictions written to ", parsed["out"])
+    println("Predictions: ", parsed["out"])
   end
-  if !parsed["verbose"]
     if !isempty(result.stage_outputs["evaluate"])
       println("Evaluation metrics:")
       for (k, v) in result.stage_outputs["evaluate"]
