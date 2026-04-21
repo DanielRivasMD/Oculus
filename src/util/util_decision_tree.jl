@@ -1,4 +1,8 @@
+####################################################################################################
+
 module DTCore
+
+####################################################################################################
 
 using DataFrames
 using DelimitedFiles
@@ -8,6 +12,9 @@ using XGBoost
 using StatsBase
 using LinearAlgebra
 
+####################################################################################################
+
+# TODO: migrate common functions to shared util file
 export load_data,
   split_data,
   train_decision_tree,
@@ -16,6 +23,8 @@ export load_data,
   predict,
   evaluate,
   write_predictions
+
+####################################################################################################
 
 """
     load_data(path::String; label_col="label") -> DataFrame
@@ -30,6 +39,8 @@ function load_data(path::String; label_col = "label")::DataFrame
   end
   return df
 end
+
+####################################################################################################
 
 """
     split_data(df::DataFrame, split_frac::Float64, seed::Int) -> (train_df, test_df)
@@ -56,6 +67,8 @@ function split_data(df::DataFrame, split_frac::Float64, seed::Int)
   return df[train_idx, :], df[test_idx, :]
 end
 
+####################################################################################################
+
 """
     train_decision_tree(X_train::Matrix, y_train::Vector{Int}, max_depth::Int, min_samples_leaf::Int) -> DecisionTreeClassifier
 
@@ -73,6 +86,8 @@ function train_decision_tree(
   DecisionTree.fit!(model, X_train, y_train_dt)   # qualified call
   return model
 end
+
+####################################################################################################
 
 """
     train_random_forest(X_train::Matrix, y_train::Vector{Int}, max_depth::Int, min_samples_leaf::Int, n_trees::Int, partial_sampling::Float64) -> RandomForestClassifier
@@ -97,6 +112,8 @@ function train_random_forest(
   DecisionTree.fit!(model, X_train, y_train_dt)   # qualified call
   return model
 end
+
+####################################################################################################
 
 """
     train_xgboost(X_train::Matrix, y_train::Vector{Int}, num_rounds::Int, eta::Float64, max_depth::Int, subsample::Float64, colsample_bytree::Float64, seed::Int) -> XGBoost.Booster
@@ -126,6 +143,8 @@ function train_xgboost(
   return xgboost(dtrain, num_round = num_rounds, params = params)
 end
 
+####################################################################################################
+
 """
     predict(model, X_test::Matrix, model_type::String) -> Vector{Int}
 
@@ -144,6 +163,8 @@ function predict(model, X_test::Matrix, model_type::String)
     error("Unknown model_type: $model_type")
   end
 end
+
+####################################################################################################
 
 """
     evaluate(y_true::Vector{Int}, y_pred::Vector{Int}) -> Dict
@@ -173,6 +194,8 @@ function evaluate(y_true, y_pred)
   )
 end
 
+####################################################################################################
+
 """
     write_predictions(path::String, predictions::Vector{Int}, test_indices::Vector{Int}, truth::Vector{Int})
 
@@ -191,4 +214,8 @@ function write_predictions(
   writedlm(path, vcat(header, data), ',')
 end
 
+####################################################################################################
+
 end
+
+####################################################################################################
