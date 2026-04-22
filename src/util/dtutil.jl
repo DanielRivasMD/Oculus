@@ -131,16 +131,18 @@ function train_xgboost(
   seed::Int,
 )
   dtrain = DMatrix(X_train, label = Float32.(y_train))
-  params = Dict(
-    "objective" => "binary:logistic",
-    "eta" => eta,
-    "max_depth" => max_depth,
-    "subsample" => subsample,
-    "colsample_bytree" => colsample_bytree,
-    "eval_metric" => "logloss",
-    "seed" => seed,
+  # DOC: hardcoded values on this call
+  return XGBoost.xgboost(
+    dtrain;
+    num_round = num_rounds,
+    eta = eta,
+    max_depth = max_depth,
+    subsample = subsample,
+    colsample_bytree = colsample_bytree,
+    eval_metric = "logloss",
+    seed = seed,
+    watchlist = Dict(),
   )
-  return xgboost(dtrain, num_round = num_rounds, params = params)
 end
 
 ####################################################################################################
