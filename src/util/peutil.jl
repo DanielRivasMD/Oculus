@@ -10,7 +10,6 @@ using FreqTables
 
 ####################################################################################################
 
-# TODO: migrate common functions to shared util file
 export accuracy,
   balancedAccuracy,
   FDR,

@@ -14,7 +14,6 @@ using LinearAlgebra
 
 ####################################################################################################
 
-# TODO: migrate common functions to shared util file
 export load_data,
   split_data,
   train_decision_tree,

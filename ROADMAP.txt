@@ -1,3 +1,6 @@
+consolidate utilities
+
+
 - once model works, test on denisovan & other species
 - test on treated & non-treated samples
 - find one or several situations where identification of single sequences would shine, perhaps re-analyze datasets?
@@ -7,20 +10,13 @@ write cnn implementation with read quality as a sub layer during hot encoding
 
 
 ==================================================
-src/flow/flow_regression.jl
-  line 17     TODO   verify which section of the split is used for training & for testing
-  line 89     TODO   we need original indices, not preserved. output row numbers from the test set for now. store indices in split_data?
-src/inter/cli/cli_features.jl
-  line 53     TODO   Add file hashes for cache invalidation?
-src/util/util_deamination.jl
-  line 13     TODO   migrate common functions to shared util file
-src/util/util_decision_tree.jl
-  line 17     TODO   migrate common functions to shared util file
-src/util/util_features.jl
-  line 13     TODO   migrate common functions to shared util file
-src/util/util_performance.jl
-  line 13     TODO   migrate common functions to shared util file
-src/util/util_regression.jl
-  line 17     TODO   migrate common functions to shared util file
-  line 158    TODO   refactor function to utilize existing functions instead of calculating from scratch; reason => reliability
+src/flow/rgflow.jl
+  line 16     TODO   verify which section of the split is used for training & for testing
+  line 83     TODO   we need original indices, not preserved. output row numbers from the test set for now. store indices in split_data?
+src/inter/cli/fecli.jl
+  line 52     TODO   Add file hashes for cache invalidation?
+src/util/dtutil.jl
+  line 133    DOC    hardcoded values on this call
+src/util/rgutil.jl
+  line 160    TODO   refactor function to utilize existing functions instead of calculating from scratch; reason => reliability
 ==================================================

@@ -10,7 +10,6 @@ using FilePathsBase: splitpath
 
 ####################################################################################################
 
-# TODO: migrate common functions to shared util file
 export load_fasta,
   position_composition, write_csv, plot_composition, compare_fasta_files, fname
 
