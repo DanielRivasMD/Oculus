@@ -152,7 +152,7 @@ uuid = "67c07d97-cdcb-5c2c-af73-a7f9c32a568b"
 version = "1.1.0"
 
 [[deps.Avicenna]]
-deps = ["ArgParse", "Dates", "SHA", "Serialization", "UUIDs"]
+deps = ["Dates", "SHA", "Serialization", "TOML", "UUIDs"]
 path = "/home/drivas/Factorem/Avicenna/"
 uuid = "94ad6e5d-203d-4d53-856b-400d6f23acee"
 version = "0.1.0"
