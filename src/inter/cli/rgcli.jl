@@ -72,9 +72,9 @@ function run(args)
     if parsed["out"] !== nothing
       println("Predictions: ", parsed["out"])
     end
-    if !isempty(result.stage_outputs["evaluate"])
+    if !isempty(result.stage_outputs["05_evaluate"])
       println("Evaluation metrics:")
-      for (k, v) in result.stage_outputs["evaluate"]
+      for (k, v) in result.stage_outputs["05_evaluate"]
         println("  $k: $v")
       end
     end

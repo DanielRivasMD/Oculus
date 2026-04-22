@@ -34,7 +34,7 @@ function run(args)
   result = launch(flow, config, cache = cache)
 
   println("Performance metrics: $(parsed["in"]):")
-  metrics = result.stage_outputs["compute_metrics"]
+  metrics = result.stage_outputs["02_compute_metrics"]
 
   metric_order = [
     "Accuracy",

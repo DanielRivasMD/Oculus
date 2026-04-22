@@ -5,7 +5,6 @@ module FECLI
 ####################################################################################################
 
 using ArgParse
-using TOML
 using Avicenna.Flow: Cache, launch
 using ..FEFlow: flow
 using ..FECore: file_hash

@@ -138,7 +138,6 @@ function build_df(seqs::Vector{String}, label::Int; onehot::Bool)::DataFrame
 
   df = DataFrame(rows)
 
-  # Ensure label is last column
   cols = [name for name in names(df) if name != "label"]
   push!(cols, "label")
   df = df[:, cols]
