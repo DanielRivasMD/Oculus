@@ -5,8 +5,6 @@ module PEFlow
 ####################################################################################################
 
 using Avicenna.Flow: Stage, Config
-using DataFrames
-using DelimitedFiles
 using ..PECore
 
 ####################################################################################################
@@ -18,7 +16,7 @@ export flow
 const flow = Config(
   "performance_evaluation",
   [
-    Stage("01_load_predictions", (config, _) -> load_predictions(config["infile"]), "1.0"),
+    Stage("01_load_predictions", (config, _) -> PECore.load_predictions(config["infile"]), "1.0"),
     Stage("02_compute_metrics", (config, prev) -> begin
       df = prev["01_load_predictions"]
       truth = Int.(df.truth)
