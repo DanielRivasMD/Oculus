@@ -21,6 +21,7 @@ export readdf,
   train_logistic,
   train_glmnet,
   predict_glmnet,
+  predict_logistic,
   evaluate,
   write_predictions
 
@@ -137,13 +138,15 @@ end
 ####################################################################################################
 
 """
-    predict_glmnet(intercept::Float64, betas::Vector{Float64}, X_test::Matrix) -> Vector{Float64}
+    predict_glmnet(intercept::Float64, betas::Vector{Float64}, X_test::Matrix; threshold::Float64 = 0.5) -> Vector{Float64}
 
 Return predicted probabilities (0..1) for test set.
 """
-function predict_glmnet(intercept, betas, X_test)
+function predict_glmnet(intercept, betas, X_test; threshold = 0.5)
   linpred = intercept .+ X_test * betas
-  return 1 ./ (1 .+ exp.(-linpred))
+  probs = 1 ./ (1 .+ exp.(-linpred))
+  preds = Int.(probs .>= threshold)
+  return (probs, preds)
 end
 
 ####################################################################################################
@@ -196,6 +199,19 @@ function write_predictions(
   header = permutedims(names(df))
   data = Matrix(df)
   writedlm(path, vcat(header, data), ',')
+end
+
+####################################################################################################
+
+"""
+    predict_logistic(model::GLM.LogitModel, test_df::DataFrame; threshold::Float64 = 0.5) -> (probs::Vector{Float64}, preds::Vector{Int})
+
+Return predicted probabilities and binary predictions (0/1) for logistic regression model.
+"""
+function predict_logistic(model, test_df::DataFrame; threshold = 0.5)
+  probs = GLM.predict(model, test_df)
+  preds = Int.(probs .>= threshold)
+  return probs, preds
 end
 
 ####################################################################################################
