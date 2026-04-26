@@ -4,6 +4,7 @@ module RG
 
 ####################################################################################################
 
+include("util/shared.jl")
 include("util/rgutil.jl")
 include("flow/rgflow.jl")
 include("inter/repl/rgrepl.jl")

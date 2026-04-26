@@ -4,6 +4,7 @@ module DT
 
 ####################################################################################################
 
+include("util/shared.jl")
 include("util/dtutil.jl")
 include("flow/dtflow.jl")
 include("inter/cli/dtcli.jl")

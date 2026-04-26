@@ -4,6 +4,7 @@ module NN
 
 ####################################################################################################
 
+include("util/shared.jl")
 include("util/nnutil.jl")
 include("flow/nnflow.jl")
 include("inter/cli/nncli.jl")

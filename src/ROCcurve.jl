@@ -4,6 +4,7 @@ module RC
 
 ####################################################################################################
 
+include("util/shared.jl")
 include("util/rcutil.jl")
 include("flow/rcflow.jl")
 include("inter/cli/rccli.jl")

@@ -4,6 +4,7 @@ module PE
 
 ####################################################################################################
 
+include("util/shared.jl")
 include("util/peutil.jl")
 include("flow/peflow.jl")
 include("inter/cli/pecli.jl")

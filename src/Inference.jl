@@ -4,6 +4,7 @@ module IN
 
 ####################################################################################################
 
+include("util/shared.jl")
 include("util/inutil.jl")
 include("flow/inflow.jl")
 include("inter/cli/incli.jl")

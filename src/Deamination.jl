@@ -4,6 +4,7 @@ module DA
 
 ####################################################################################################
 
+include("util/shared.jl")
 include("util/dautil.jl")
 include("flow/daflow.jl")
 include("inter/repl/darepl.jl")

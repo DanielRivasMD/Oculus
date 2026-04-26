@@ -4,6 +4,7 @@ module FE
 
 ####################################################################################################
 
+include("util/shared.jl")
 include("util/feutil.jl")
 include("flow/feflow.jl")
 include("inter/repl/ferepl.jl")
