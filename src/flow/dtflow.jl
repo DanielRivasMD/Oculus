@@ -6,6 +6,7 @@ module DTFlow
 
 using Avicenna.Flow: Stage, Config
 using ..DTCore
+using ..USCore
 
 ####################################################################################################
 
@@ -16,11 +17,11 @@ export flow
 const flow = Config(
   "decision_tree_analysis",
   [
-    Stage("01_load_data", (config, _) -> DTCore.load_data(config["infile"]), "1.0"),
+    Stage("01_load_data", (config, _) -> USCore.load_data(config["infile"]), "1.0"),
     Stage(
       "02_split_data",
       (config, prev) ->
-        DTCore.split_data(prev["01_load_data"], config["split"], config["seed"]),
+        USCore.split_data(prev["01_load_data"], config["split"], config["seed"]),
       "1.0",
     ),
     Stage(
@@ -91,7 +92,7 @@ const flow = Config(
       end
       truth = Int.(test_df.label)
       preds = prev["04_predict"]
-      return DTCore.evaluate(truth, preds)
+      return USCore.performance(truth, preds)
     end, "1.0"),
     Stage(
       "06_write_output",
@@ -106,7 +107,7 @@ const flow = Config(
         test_indices = collect(1:size(test_df, 1))  # placeholder - not the original indices.
         truth = Int.(test_df.label)
         preds = prev["04_predict"]
-        DTCore.write_predictions(config["out"], preds, test_indices, truth)
+        USCore.write_predictions(config["out"], preds, test_indices, truth)
         return nothing
       end,
       "1.0",

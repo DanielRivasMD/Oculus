@@ -6,6 +6,7 @@ module PEFlow
 
 using Avicenna.Flow: Stage, Config
 using ..PECore
+using ..USCore
 
 ####################################################################################################
 
@@ -26,7 +27,7 @@ const flow = Config(
       for (t, p) in zip(truth, pred)
         cm[t+1, p+1] += 1   # because labels 0,1 -> indices 1,2
       end
-      return PECore.performance(cm)
+      return USCore.performance(cm)
     end, "1.0"),
   ],
   "1.0",

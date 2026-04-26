@@ -14,11 +14,7 @@ using LinearAlgebra
 
 ####################################################################################################
 
-export load_data,
-  train_decision_tree,
-  train_random_forest,
-  train_xgboost,
-  predict
+export train_decision_tree, train_random_forest, train_xgboost, predict
 
 ####################################################################################################
 
