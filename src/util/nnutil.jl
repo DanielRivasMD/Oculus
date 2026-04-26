@@ -1,3 +1,5 @@
+####################################################################################################
+
 module NNCore
 
 ####################################################################################################
@@ -31,8 +33,6 @@ export HyperParams,
 
 ####################################################################################################
 
-# ----- Structs --------------------------------------------------------------
-
 @with_kw mutable struct HyperParams
   batchsize::Int = 64
   shuffle::Bool = true
@@ -62,7 +62,7 @@ end
   ancient::String
 end
 
-# ----- Configuration loaders ------------------------------------------------
+####################################################################################################
 
 function symbolise_keys(tbl::Dict)
   Dict(Symbol(k) => v for (k, v) in tbl)
@@ -94,7 +94,7 @@ function loadSparams(path::String)::SampleParams
   )
 end
 
-# ----- Data loading ---------------------------------------------------------
+####################################################################################################
 
 nt2ix = Dict(DNA_A => 1, DNA_C => 2, DNA_G => 3, DNA_T => 4)
 
@@ -146,7 +146,7 @@ function load_balanced_data(params::SampleParams)
   return all_seqs, labels
 end
 
-# ----- Split indices --------------------------------------------------------
+####################################################################################################
 
 function split_indices(B::Int, hparams::HyperParams, sparams::SampleParams)
   Random.seed!(sparams.seed)
@@ -165,7 +165,7 @@ function split_indices(B::Int, hparams::HyperParams, sparams::SampleParams)
   end
 end
 
-# ----- Dataset assembly -----------------------------------------------------
+####################################################################################################
 
 function make_dataset(sparams::SampleParams, hparams::HyperParams)
   all_seqs, labels = load_balanced_data(sparams)
@@ -185,7 +185,7 @@ function make_dataset(sparams::SampleParams, hparams::HyperParams)
   return datasets, (B = B, L = size(X, 1))
 end
 
-# ----- Model architecture ---------------------------------------------------
+####################################################################################################
 
 pool_out_len(seqlen::Int, p::Int, n::Int) = begin
   L = seqlen
@@ -270,7 +270,7 @@ function buildCNN(args::HyperParams, sparams::SampleParams)
   return Chain(layers...) |> args.device
 end
 
-# ----- Training loop --------------------------------------------------------
+####################################################################################################
 
 function trainCNN!(
   model,
@@ -342,7 +342,7 @@ function trainCNN!(
   return (; train_losses, val_losses, train_accs, val_accs, model, opt_state)
 end
 
-# ----- Checkpoint save ------------------------------------------------------
+####################################################################################################
 
 function save_checkpoint(model, hparams, sparams, train_result, path)
   @save path model hparams sparams train_losses = train_result.train_losses val_losses =
@@ -350,7 +350,7 @@ function save_checkpoint(model, hparams, sparams, train_result, path)
     train_result.val_accs
 end
 
-# ----- Full training + saving wrapper (used by flow) ------------------------
+####################################################################################################
 
 function train_and_save(hparams::HyperParams, sparams::SampleParams, out_base::String)
   datasets, meta = make_dataset(sparams, hparams)
@@ -384,3 +384,5 @@ end
 ####################################################################################################
 
 end
+
+####################################################################################################
