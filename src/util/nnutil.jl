@@ -27,7 +27,6 @@ export HyperParams,
   trainCNN!,
   train_and_save,
   save_checkpoint,
-  onehot_encode,
   onehot_batch,
   load_sequences_fasta
 
@@ -96,20 +95,6 @@ end
 
 ####################################################################################################
 
-nt2ix = Dict(DNA_A => 1, DNA_C => 2, DNA_G => 3, DNA_T => 4)
-
-function onehot_encode(seq::LongDNA{4})
-  L = length(seq)
-  X = zeros(Float32, L, 4)
-  @inbounds for (i, nt) in enumerate(seq)
-    ix = get(nt2ix, nt, 0)
-    if ix != 0
-      X[i, ix] = 1.0f0
-    end
-  end
-  return X
-end
-
 function onehot_batch(seqs::Vector{LongDNA{4}})
   maxL = maximum(length, seqs)
   B = length(seqs)
@@ -129,17 +114,17 @@ function load_sequences_fasta(path::AbstractString)
 end
 
 function load_balanced_data(params::SampleParams)
-  modern = load_sequences_fasta(params.modern)
   ancient = load_sequences_fasta(params.ancient)
-  println("French:     $(length(modern)) reads")
-  println("Neandertal: $(length(ancient)) reads")
+  modern = load_sequences_fasta(params.modern)
+  println("Ancient:    $(length(ancient)) reads")
+  println("Modern:     $(length(modern)) reads")
 
-  modern_filt = filter(seq -> length(seq) == params.seqlen, modern)
   ancient_filt = filter(seq -> length(seq) == params.seqlen, ancient)
+  modern_filt = filter(seq -> length(seq) == params.seqlen, modern)
   minN = min(length(modern_filt), length(ancient_filt))
   Random.seed!(params.seed)
-  modern_bal = sample(modern_filt, minN; replace = false)
   ancient_bal = sample(ancient_filt, minN; replace = false)
+  modern_bal = sample(modern_filt, minN; replace = false)
   println("Balanced: $minN per class")
   all_seqs = vcat(modern_bal, ancient_bal)
   labels = vcat(zeros(Int, minN), ones(Int, minN))

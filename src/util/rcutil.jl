@@ -3,21 +3,22 @@
 module RCCore
 
 ####################################################################################################
+
 using DelimitedFiles
 using Plots
 using Weave
 using FilePathsBase: joinpath
 
-export load_probs_labels, roc_curve, generate_roc_report
+export load_probs_labels, roc_curve
 
 ####################################################################################################
 
 """
     load_probs_labels(path::String; has_truth=false, label=nothing)
 
-Read a CSV with columns `id,p0,p1` (and optionally a 4th column for ground truth).
+Read CSV with columns `id,p0,p1` (and optionally a 4th column for ground truth).
 Returns `(probs::Vector{Float64}, labels::Union{Vector{Int},Nothing})`.
-If `has_truth=false`, a fixed `label` must be supplied.
+If `has_truth=false`, a fixed `label` must be supplied
 """
 function load_probs_labels(
   path::String;
@@ -42,7 +43,7 @@ end
 """
     roc_curve(probs::Vector{Float64}, labels::Vector{Int}; nbins=100) -> (fpr, tpr)
 
-Compute ROC curve points (false positive rate, true positive rate).
+Compute ROC curve points (false positive rate, true positive rate)
 """
 function roc_curve(probs::Vector{Float64}, labels::Vector{Int}; nbins::Int = 100)
   thresholds = range(0, 1, length = nbins)
@@ -52,8 +53,8 @@ function roc_curve(probs::Vector{Float64}, labels::Vector{Int}; nbins::Int = 100
   P = sum(labels .== 1)
   N = sum(labels .== 0)
 
-  for τ in thresholds
-    preds = probs .>= τ
+  for threshold in thresholds
+    preds = probs .>= threshold
     TP = sum((preds .== 1) .& (labels .== 1))
     FP = sum((preds .== 1) .& (labels .== 0))
     push!(tpr, TP / max(P, 1))

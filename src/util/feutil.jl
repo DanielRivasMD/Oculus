@@ -10,35 +10,7 @@ using SHA
 
 ####################################################################################################
 
-export load_fasta, minimal_features, onehot_features, build_df, writedf, file_hash
-
-####################################################################################################
-
-"""
-    load_fasta(path::String) -> Vector{String}
-
-Read a FASTA file and return a vector of sequences (as plain strings).
-Headers are discarded.
-"""
-function load_fasta(path::String)::Vector{String}
-  seqs = String[]
-  buf = IOBuffer()
-  open(path) do f
-    for line in eachline(f)
-      if startswith(line, '>')
-        if position(buf) > 0
-          push!(seqs, String(take!(buf)))
-        end
-      else
-        write(buf, strip(line))
-      end
-    end
-    if position(buf) > 0
-      push!(seqs, String(take!(buf)))
-    end
-  end
-  return seqs
-end
+export minimal_features, onehot_features, build_df, file_hash
 
 ####################################################################################################
 
@@ -49,7 +21,7 @@ Compute the minimal set of features:
 - C→T fraction at 5' end (windows of 5,10,15)
 - G→A fraction at 3' end (windows of 5,10,15)
 - GC content
-All values rounded to two decimals.
+All values rounded to two decimals
 """
 function minimal_features(seq::String)::Dict{Symbol,Float64}
   L = length(seq)
@@ -94,7 +66,7 @@ end
     onehot_features(seq::String) -> Dict{Symbol,Int}
 
 One‑hot encode each position: for each base A,T,G,C at position i,
-create a feature `a_i`, `t_i`, `g_i`, `c_i` with value 1 if the base matches.
+create a feature `a_i`, `t_i`, `g_i`, `c_i` with value 1 if the base matches
 """
 function onehot_features(seq::String)::Dict{Symbol,Int}
   seq_up = uppercase(seq)
@@ -119,7 +91,7 @@ end
     build_df(seqs::Vector{String}, label::Int; onehot::Bool) -> DataFrame
 
 Convert a list of sequences into a DataFrame where each row corresponds to one sequence,
-and columns are the features (plus a `label` column). The label column is placed last.
+and columns are the features (plus a `label` column). The label column is placed last
 """
 function build_df(seqs::Vector{String}, label::Int; onehot::Bool)::DataFrame
   rows = Vector{Dict}()
@@ -146,19 +118,10 @@ end
 
 ####################################################################################################
 
-"write dataframe"
-function writedf(path, df::DataFrame; sep = ',')
-  header = permutedims(names(df))  # 1×N matrix of strings
-  data = Matrix(df)
-  writedlm(path, vcat(header, data), sep)
-end
-
-####################################################################################################
-
 """
     file_hash(path::String) -> String
 
-Compute the SHA‑256 hash of a file’s contents. Used for cache invalidation.
+Compute the SHA‑256 hash of file contents. Used for cache invalidation
 """
 function file_hash(path::String)::String
   open(path, "r") do io

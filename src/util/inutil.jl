@@ -21,8 +21,8 @@ export load_model, load_sequences, predict_all, write_predictions
 """
     parse_model_seq_length(modelname::String) -> Int
 
-Extract sequence length from a filename containing `_NNNnt`, e.g.
-`myModel_75nt_timestamp.bson` → 75.
+Extract sequence length from a filename containing `_NNNnt`
+example => `Model_75nt_timestamp.bson` → 75
 """
 function parse_model_seq_length(modelname::String)
   m = match(r"_(\d+)nt", modelname)
@@ -32,26 +32,10 @@ end
 
 ####################################################################################################
 
-const nt2ix = Dict(DNA_A => 1, DNA_C => 2, DNA_G => 3, DNA_T => 4)
-
-function onehot_encode(seq::LongDNA{4})
-  L = length(seq)
-  X = zeros(Float32, L, 4)
-  @inbounds for (i, nt) in enumerate(seq)
-    ix = get(nt2ix, nt, 0)
-    if ix != 0
-      X[i, ix] = 1.0f0
-    end
-  end
-  return X
-end
-
-####################################################################################################
-
 """
     fix_length(seq::LongDNA{4}, L::Int) -> LongDNA{4}
 
-Truncate or pad a DNA sequence to exactly `L` nucleotides.
+Truncate or pad a DNA sequence to exactly `L` nucleotides
 """
 function fix_length(seq::LongDNA{4}, L::Int)
   len = length(seq)
@@ -100,7 +84,7 @@ end
 """
     load_sequences(path::String) -> Vector{LongDNA{4}}
 
-Load sequences from FASTA / FASTQ (plain or .gz). Returns a vector of `LongDNA{4}`.
+Load sequences from FASTA / FASTQ (plain or .gz). Returns a vector of `LongDNA{4}`
 """
 function load_sequences(path::String)
   open(path) do io
@@ -123,8 +107,8 @@ end
     predict_all(model, seqs::Vector{LongDNA{4}}, L::Int)
         -> (preds::Vector{Int}, probs::Matrix{Float32})
 
-Run inference on a batch of sequences after fixing their length to `L`.
-Returns hard predictions (0/1) and a 2×N probability matrix (row1=p0, row2=p1).
+Run inference on a batch of sequences after fixing their length to `L`
+Returns hard predictions (0/1) and a 2×N probability matrix (row1=p0, row2=p1)
 """
 function predict_all(model, seqs::Vector{LongDNA{4}}, L::Int)
   preds = Vector{Int}(undef, length(seqs))

@@ -10,8 +10,7 @@ using FilePathsBase: splitpath
 
 ####################################################################################################
 
-export load_fasta,
-  position_composition, write_csv, plot_composition, compare_fasta_files, fname
+export position_composition, write_csv, plot_composition, compare_fasta_files, fname
 
 ####################################################################################################
 
@@ -20,36 +19,9 @@ fname(path::String) = splitpath(path)[end]
 ####################################################################################################
 
 """
-    load_fasta(path::String) -> Vector{String}
-
-Read a FASTA file and return a vector of sequences (plain strings). Headers are discarded.
-"""
-function load_fasta(path::String)::Vector{String}
-  seqs = String[]
-  buf = IOBuffer()
-  open(path) do f
-    for line in eachline(f)
-      if startswith(line, '>')
-        if position(buf) > 0
-          push!(seqs, String(take!(buf)))
-        end
-      else
-        write(buf, strip(line))
-      end
-    end
-    if position(buf) > 0
-      push!(seqs, String(take!(buf)))
-    end
-  end
-  return seqs
-end
-
-####################################################################################################
-
-"""
     position_composition(seqs::Vector{String}) -> Vector{Dict{Char,Float64}}
 
-Compute per‑position percentages of A, T, G, C, N for a list of sequences of equal length.
+Compute per‑position percentages of A, T, G, C, N for a list of sequences of equal length
 """
 function position_composition(seqs::Vector{String})::Vector{Dict{Char,Float64}}
   isempty(seqs) && error("No sequences found.")
@@ -125,7 +97,7 @@ end
 """
     plot_composition(csvfile::String; outfile::Union{Nothing,String}=nothing)
 
-Generate a line plot of per‑position base composition from the CSV file.
+Generate a line plot of per‑position base composition from the CSV file
 """
 function plot_composition(csvfile::String; outfile::Union{Nothing,String} = nothing)
   raw = readdlm(csvfile, ',', String)
@@ -183,7 +155,7 @@ end
 """
     compare_fasta_files(modern::String, ancient::String; csv_out::String, verbose::Bool=false)
 
-Load two FASTA files, compute per‑position composition, write CSV, and report differences.
+Load two FASTA files, compute per‑position composition, write CSV, and report differences
 """
 function compare_fasta_files(
   modern::String,
