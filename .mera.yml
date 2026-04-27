@@ -1,39 +1,45 @@
 root:
   children:
-    - bin
     - config
     - data
     - src
 
-  src:
+  config:
     children:
-      - inter
-      - util
-      - flow
-    inter:
-      children:
-        - cli
-        - doc
-        - repl
+      - toml
 
   data:
     children:
-      - orig
       - cache
       - graph
-    orig:
-      children:
-        - bam
-        - fasta
-        - refseq
-        - gargammel
+      - orig
+
     cache:
       children:
         - fasta
         - features
         - inference
         - model
+
     graph:
       children:
         - html
         - png
+
+    orig:
+      children:
+        - bam
+        - fasta
+        - gargammel
+        - refseq
+
+  src:
+    children:
+      - flow
+      - inter
+      - util
+    inter:
+      children:
+        - cli
+        - doc
+        - repl
