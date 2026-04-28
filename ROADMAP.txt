@@ -1,22 +1,21 @@
-consolidate utilities
-
-
 - once model works, test on denisovan & other species
 - test on treated & non-treated samples
 - find one or several situations where identification of single sequences would shine, perhaps re-analyze datasets?
 
 write cnn implementation with read quality as a sub layer during hot encoding
 
+microbial ancient DNA - sample from each file & plot calling quality scores
+run dimer quantification, perhaps in combination with calling quality scores
 
 
 ==================================================
+src/flow/rcflow.jl
+  line 48     TODO   stage 3 will not compute. save results as csv
 src/flow/rgflow.jl
-  line 16     TODO   verify which section of the split is used for training & for testing
-  line 83     TODO   we need original indices, not preserved. output row numbers from the test set for now. store indices in split_data?
+  line 17     TODO   verify which section of the split is used for training & for testing
+  line 84     TODO   we need original indices, not preserved. output row numbers from the test set for now. store indices in split_data?
 src/inter/cli/fecli.jl
   line 52     TODO   Add file hashes for cache invalidation?
 src/util/dtutil.jl
-  line 133    DOC    hardcoded values on this call
-src/util/rgutil.jl
-  line 160    TODO   refactor function to utilize existing functions instead of calculating from scratch; reason => reliability
+  line 83     DOC    hardcoded values on this call
 ==================================================
