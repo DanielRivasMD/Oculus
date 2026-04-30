@@ -8,10 +8,14 @@ microbial ancient DNA - sample from each file & plot calling quality scores
 run dimer quantification, perhaps in combination with calling quality scores
 
 select all bam files from ancient microbial directory
-calculate deamination patterns
 calculate read length distributions
+calculate deamination patterns
 calculate calling qualities
 calculate dimer counts
+aggregate all features for model training
+
+migrate deamination calculation => gattaca
+migrate feature engineering => gattaca
 
 create a sequence simulator engine => params: n seqs, seq length, k-mer composition
 create a sequence evolulver engine => params: decay / mutation rate, seq position bias
