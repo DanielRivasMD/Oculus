@@ -54,8 +54,8 @@ function run(args)
   ancient = parsed["ancient"]
   modern = parsed["modern"]
 
-  if single != ""
-    if ancient != "" || modern != ""
+  if single != nothing
+    if ancient != nothing || modern != nothing
       error("Cannot use --single together with --ancient/--modern")
     end
     mode = :single
@@ -64,7 +64,7 @@ function run(args)
       "csv" => joinpath(parsed["outdir"], parsed["csv"]),
       "png" => joinpath(parsed["outdir"], parsed["png"]),
     )
-  elseif ancient != "" && modern != ""
+  elseif ancient != nothing && modern != nothing
     mode = :dual
     config = Dict{String,Any}(
       "ancient" => ancient,

@@ -42,12 +42,13 @@ const flow = Config(
     Stage(
       "02_compute",
       (config, prev) -> begin
-        if prev.mode == :single
-          comp = DACore.position_composition(prev.seqs)
+        # @info prev
+        if prev["01_load"].mode == :single
+          comp = DACore.position_composition(prev["01_load"].seqs)
           return (mode = :single, comp = comp)
         else
-          comp_ancient = DACore.position_composition(prev.seqs_ancient)
-          comp_modern = DACore.position_composition(prev.seqs_modern)
+          comp_ancient = DACore.position_composition(prev["01_load"].seqs_ancient)
+          comp_modern = DACore.position_composition(prev["01_load"].seqs_modern)
           return (mode = :dual, comp_ancient = comp_ancient, comp_modern = comp_modern)
         end
       end,
@@ -56,15 +57,15 @@ const flow = Config(
     Stage(
       "03_write_csv",
       (config, prev) -> begin
-        if prev.mode == :single
-          DACore.write_csv_single(config["csv"], prev.comp)
+        if prev["02_compute"].mode == :single
+          DACore.write_csv_single(config["csv"], prev["02_compute"].comp)
         else
           DACore.write_csv_dual(
             config["csv"],
-            prev.modern_name,
-            prev.ancient_name,
-            prev.comp_modern,
-            prev.comp_ancient,
+            prev["01_load"].modern_name,
+            prev["01_load"].ancient_name,
+            prev["02_compute"].comp_modern,
+            prev["02_compute"].comp_ancient,
           )
         end
       end,

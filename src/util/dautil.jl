@@ -26,7 +26,7 @@ fname(path::String) = splitpath(path)[end]
 Compute per‑position percentages of A, T, G, C, N for a list of sequences of equal length
 """
 function position_composition(seqs::Vector{String})::Vector{Dict{Char,Float64}}
-  isempty(seqs) && error("No sequences found.")
+  isempty(seqs) && error("No sequences found")
   L = length(seqs[1])
   for s in seqs
     length(s) == L || error("Sequences differ in length")
@@ -85,7 +85,7 @@ end
                    comp1::Vector{Dict{Char,Float64}},
                    comp2::Vector{Dict{Char,Float64}})
 
-Write the combined CSV for two‑file comparison
+Write the combined CSV for dual‑file comparison
 """
 function write_csv_dual(
   outpath::String,
@@ -129,7 +129,7 @@ end
     plot_composition(csvfile::String; outfile::Union{Nothing,String}=nothing)
 
 Generate a line plot of per‑position base composition
-Detects single‑file (5 columns) vs two‑file (9 columns) format automatically
+Detects single‑file (5 columns) vs dual‑file (9 columns) format automatically
 """
 function plot_composition(csvfile::String; outfile::Union{Nothing,String} = nothing)
   raw = readdlm(csvfile, ',', String)
@@ -142,7 +142,7 @@ function plot_composition(csvfile::String; outfile::Union{Nothing,String} = noth
     groups = [("Sample", :solid)]
     bases = ["A", "T", "G", "C"]
     cols_offset = 1
-  elseif ncols == 9   # two files
+  elseif ncols == 9   # dual file
     modern_name = replace(header[2], r"_A$" => "")
     ancient_name = replace(header[6], r"_A$" => "")
     groups = [(modern_name, :solid), (ancient_name, :dash)]
