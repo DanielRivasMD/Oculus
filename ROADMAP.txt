@@ -7,6 +7,16 @@ write cnn implementation with read quality as a sub layer during hot encoding
 microbial ancient DNA - sample from each file & plot calling quality scores
 run dimer quantification, perhaps in combination with calling quality scores
 
+select all bam files from ancient microbial directory
+calculate deamination patterns
+calculate read length distributions
+calculate calling qualities
+calculate dimer counts
+
+create a sequence simulator engine => params: n seqs, seq length, k-mer composition
+create a sequence evolulver engine => params: decay / mutation rate, seq position bias
+
+
 
 ==================================================
 src/flow/rcflow.jl
