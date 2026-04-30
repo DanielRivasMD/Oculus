@@ -18,22 +18,27 @@ export run
 function run(args)
   s = ArgParseSettings()
   @add_arg_table! s begin
+    "--single"
+    help = "Single FASTA file (single‑file mode)"
+    arg_type = String
     "--ancient"
-    help = "Path to ancient FASTA file"
+    help = "Ancient FASTA file (dual‑file mode)"
     arg_type = String
-    required = true
     "--modern"
-    help = "Path to modern FASTA file"
+    help = "Modern FASTA file (dual‑file mode)"
     arg_type = String
-    required = true
     "--csv"
-    help = "Output CSV file"
+    help = "Output CSV file name"
     arg_type = String
     default = "out.csv"
     "--png"
-    help = "Output PNG plot file"
+    help = "Output PNG plot file name"
     arg_type = String
     default = "out.png"
+    "--outdir"
+    help = "Directory to write output files (default: current directory)"
+    arg_type = String
+    default = "."
     "--no-cache"
     help = "Disable caching"
     action = :store_true
@@ -44,14 +49,34 @@ function run(args)
 
   parsed = parse_args(args, s)
 
-  config = Dict{String,Any}(
-    "ancient" => parsed["ancient"],
-    "modern" => parsed["modern"],
-    "csv" => parsed["csv"],
-    "png" => parsed["png"],
-    "ancient_name" => fname(parsed["ancient"]),
-    "modern_name" => fname(parsed["modern"]),
-  )
+  # Determine mode
+  single = parsed["single"]
+  ancient = parsed["ancient"]
+  modern = parsed["modern"]
+
+  if single != ""
+    if ancient != "" || modern != ""
+      error("Cannot use --single together with --ancient/--modern")
+    end
+    mode = :single
+    config = Dict{String,Any}(
+      "single" => single,
+      "csv" => joinpath(parsed["outdir"], parsed["csv"]),
+      "png" => joinpath(parsed["outdir"], parsed["png"]),
+    )
+  elseif ancient != "" && modern != ""
+    mode = :dual
+    config = Dict{String,Any}(
+      "ancient" => ancient,
+      "modern" => modern,
+      "ancient_name" => fname(ancient),
+      "modern_name" => fname(modern),
+      "csv" => joinpath(parsed["outdir"], parsed["csv"]),
+      "png" => joinpath(parsed["outdir"], parsed["png"]),
+    )
+  else
+    error("Provide either --single or both --ancient and --modern")
+  end
 
   cache = Cache("cache/deamination", !parsed["no-cache"])
   result = launch(flow, config, cache = cache)
