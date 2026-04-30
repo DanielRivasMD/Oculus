@@ -15,30 +15,53 @@ export run, compare_fasta_files, plot_composition
 ####################################################################################################
 
 """
-    run_deamination(
-      ancient::String,
-      modern::String,
-      csv::String="out.csv",
-      png::String="out.png",
-      no_cache::Bool=false) -> Result
+    run(;
+        single::Union{String,Nothing}=nothing,
+        ancient::Union{String,Nothing}=nothing,
+        modern::Union{String,Nothing}=nothing,
+        csv::String="out.csv",
+        png::String="out.png",
+        outdir::String=".",
+        no_cache::Bool=false,
+    ) -> Result
 
-Run the deamination analysis workflow from the REPL.
+Run deamination analysis from the REPL
+
+- Provide `single` for single‑file mode
+- Provide both `ancient` and `modern` for two‑file comparison
 """
-function run(
-  ancient::String;
-  modern::String,
+function run(;
+             # TODO: use only string without union?
+  single::Union{String,Nothing} = nothing,
+  ancient::Union{String,Nothing} = nothing,
+  modern::Union{String,Nothing} = nothing,
   csv::String = "out.csv",
   png::String = "out.png",
+  outdir::String = ".",
   no_cache::Bool = false,
 )
-  config = Dict{String,Any}(
-    "ancient" => ancient,
-    "modern" => modern,
-    "csv" => csv,
-    "png" => png,
-    "ancient_name" => fname(ancient),
-    "modern_name" => fname(modern),
-  )
+  if single !== nothing
+    if ancient !== nothing || modern !== nothing
+      error("Cannot use single together with ancient/modern")
+    end
+    config = Dict{String,Any}(
+      "single" => single,
+      "csv" => joinpath(outdir, csv),
+      "png" => joinpath(outdir, png),
+    )
+  elseif ancient !== nothing && modern !== nothing
+    config = Dict{String,Any}(
+      "ancient" => ancient,
+      "modern" => modern,
+      "ancient_name" => fname(ancient),
+      "modern_name" => fname(modern),
+      "csv" => joinpath(outdir, csv),
+      "png" => joinpath(outdir, png),
+    )
+  else
+    error("Provide either single or both ancient and modern")
+  end
+
   cache = Cache("cache/deamination", !no_cache)
   return launch(flow, config, cache = cache)
 end
